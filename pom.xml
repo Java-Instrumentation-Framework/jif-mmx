@@ -24,6 +24,7 @@
       <!--<module>mytestplugin</module>-->
       <module>dataset</module>
       <module>datasetconverter</module>
+      <module>orientationindicators</module>
       <module>mmxplugins</module>
    </modules>
    <properties>
