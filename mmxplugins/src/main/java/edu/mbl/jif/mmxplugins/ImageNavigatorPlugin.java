@@ -21,7 +21,7 @@ public class ImageNavigatorPlugin implements PlugIn {
          SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                final String pathStart = "C:/MicroManagerData/";
-               ImageNavigator explorer = new ImageNavigator(pathStart, true);
+               ImageNavigator explorer = new ImageNavigator(true,pathStart, true);
                Thread.currentThread().setContextClassLoader(IJ.getClassLoader());
             }
          });
