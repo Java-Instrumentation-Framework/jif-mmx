@@ -23,12 +23,6 @@
          <type>jar</type>
       </dependency>
       <dependency>
-         <groupId>foxtrot</groupId>
-         <artifactId>foxtrot-core</artifactId>
-         <version>4.0</version>
-         <type>jar</type>
-      </dependency>
-      <dependency>
          <groupId>eu.floraresearch</groupId>
          <artifactId>lablib-checkboxtree</artifactId>
          <version>4.0-beta-1</version>
@@ -55,6 +49,12 @@
          <groupId>edu.mbl.jif</groupId>
          <artifactId>jif-minimal</artifactId>
          <version>1.0-SNAPSHOT</version>
+         <type>jar</type>
+      </dependency>
+      <dependency>
+         <groupId>foxtrot</groupId>
+         <artifactId>foxtrot-core</artifactId>
+         <version>4.0</version>
          <type>jar</type>
       </dependency>
    </dependencies>

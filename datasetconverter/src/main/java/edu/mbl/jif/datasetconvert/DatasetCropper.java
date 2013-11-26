@@ -14,7 +14,7 @@ import edu.mbl.jif.imaging.dataset.tests.DatasetGenTester;
 import edu.mbl.jif.imaging.mmtiff.ImageUtils;
 import edu.mbl.jif.imaging.mmtiff.MDUtils;
 import edu.mbl.jif.imaging.mmtiff.TaggedImage;
-import edu.mbl.jif.datasetconvert.job.JobMonitorPanel;
+import edu.mbl.jif.job.JobMonitorPanel;
 import foxtrot.Job;
 import ij.process.ImageProcessor;
 import java.awt.Rectangle;

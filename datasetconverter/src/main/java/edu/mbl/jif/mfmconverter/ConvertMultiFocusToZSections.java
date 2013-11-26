@@ -4,7 +4,7 @@
  */
 package edu.mbl.jif.mfmconverter;
 
-import edu.mbl.jif.datasetconvert.job.JobMonitorPanel;
+import edu.mbl.jif.job.JobMonitorPanel;
 import edu.mbl.jif.gui.DialogBox;
 import edu.mbl.jif.imaging.dataset.MMgrDatasetAccessor;
 import edu.mbl.jif.imaging.dataset.MMgrDatasetGenerator;

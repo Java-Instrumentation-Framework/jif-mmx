@@ -2,7 +2,7 @@
 package edu.mbl.jif.datasetconvert;
 
 import edu.mbl.jif.gui.file.PathChooserSourceDestination;
-import edu.mbl.jif.datasetconvert.job.JobMonitorPanel;
+import edu.mbl.jif.job.JobMonitorPanel;
 import edu.mbl.jif.mfmconverter.*;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -69,7 +69,7 @@ public class DatasetModifierApp {
       final RectangleInputPanel rectInPanel = new RectangleInputPanel();
       rectInPanel.setMaximumSize(new Dimension(300, 24));
       rectInPanel.setMinimumSize(new Dimension(300, 24));   
-//      f.add(rectInPanel);
+      f.add(rectInPanel);
       f.add(Box.createVerticalStrut(5));
       JCheckBox multipageCheckBox = new JCheckBox("Save as multi-page OME-Tiff format");
       multipageCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);

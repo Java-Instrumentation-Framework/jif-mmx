@@ -1,9 +1,9 @@
 package edu.mbl.jif.datasetconvert;
 
 import edu.mbl.jif.gui.file.PathChooserSourceDestination;
-import edu.mbl.jif.datasetconvert.job.JobMonitorPanel;
-import edu.mbl.jif.datasetconvert.job.JobMonTest;
-import edu.mbl.jif.datasetconvert.job.JobRunnerDialog;
+import edu.mbl.jif.job.JobMonitorPanel;
+import edu.mbl.jif.job.JobMonTest;
+import edu.mbl.jif.job.JobRunnerDialog;
 import edu.mbl.jif.mfmconverter.*;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -48,7 +48,9 @@ public class DatasetCropperApp {
       instructionsArea.setFocusable(false);
       //f.add(instructionsArea, "gap para, span 2, wrap");
       f.add(instructionsArea, "span 2, wrap");
-      
+      // TODO +++ Add passing of the current dataset when invoked from ImageJ, use this as source
+      // and don't add the source field.
+     
       final PathChooserSourceDestination dirChoos = new PathChooserSourceDestination(null,null);
       f.add(dirChoos, "wrap");
       JLabel inputRoiLabel = new JLabel("Crop to ROI:");
@@ -88,20 +90,23 @@ public class DatasetCropperApp {
             File destF = new File(dest);
             String dir = sourceF.getParent();
             String prefixIn = sourceF.getName();
-            String outDir = destF.getAbsolutePath();
+            String outDir = destF.getAbsolutePath(); 
             // String outPrefix = sourceF.getName();
             String outPrefix = prefixIn + "_crop";
+            boolean isMultiPage = true;
+            boolean seperateMDFile = false;
+            boolean seperateFilesForPositions = true;
             DatasetCropper cropper = new DatasetCropper( 
                     jobMon,
                     dir, prefixIn, outDir, outPrefix,
-                    roi, true, true, true);
+                    roi, isMultiPage, seperateMDFile, seperateFilesForPositions);
             String jobDescription =
                     "<html>Crop the dataset to: <p>"
                     + "x: " + roi.x + ", y: " + roi.y + 
                     ", width: " + roi.width + ", height: " + roi.height + "</html>";
             jobMon = new JobMonitorPanel();
             jobMon.setTheJobToRun(cropper, jobDescription);
-            final JobRunnerDialog dialog = new JobRunnerDialog(jobMon, f);
+            final JobRunnerDialog dialog = new JobRunnerDialog(jobMon, f, false);
             dialog.setVisible(true); // pop up dialog
          }
       };

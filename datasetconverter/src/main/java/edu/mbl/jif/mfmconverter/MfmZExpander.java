@@ -2,8 +2,8 @@ package edu.mbl.jif.mfmconverter;
 
 import edu.mbl.jif.gui.file.PathChooserSourceDestination;
 import edu.mbl.jif.gui.file.FileChooserPanel;
-import edu.mbl.jif.datasetconvert.job.JobMonitorPanel;
-import edu.mbl.jif.datasetconvert.job.JobRunnerDialog;
+import edu.mbl.jif.job.JobMonitorPanel;
+import edu.mbl.jif.job.JobRunnerDialog;
 import edu.mbl.jif.gui.DialogBox;
 import edu.mbl.jif.utils.FileUtils;
 import edu.mbl.jif.utils.Prefs;
@@ -113,7 +113,7 @@ public class MfmZExpander {
                     + "</html>";
             //
             jobMon.setTheJobToRun(cmfzs, jobDescription);
-            final JobRunnerDialog dialog = new JobRunnerDialog(jobMon, f);
+            final JobRunnerDialog dialog = new JobRunnerDialog(jobMon, f, true);
             dialog.setVisible(true); // pop up dialog
          }
       };
