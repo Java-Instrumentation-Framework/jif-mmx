@@ -135,6 +135,8 @@ public class Exporter {
             }
 
          } catch (IOException ex) {
+            ex.printStackTrace();
+            System.err.println("Could not open datafile: ");
          }
          // TODO create data output file
       }

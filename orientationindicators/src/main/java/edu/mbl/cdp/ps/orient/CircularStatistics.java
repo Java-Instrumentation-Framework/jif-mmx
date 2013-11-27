@@ -102,6 +102,7 @@ public class CircularStatistics {
       }
       return rem;
    }
+   
    public static double modulo(double i, double j) {
       double rem = i % j;
       if (j < 0 && rem > 0) {
@@ -123,7 +124,8 @@ public class CircularStatistics {
 
    public void test(String msg, float[] anglesDeg, float[] anisotropy, float[] intensity) {
       float[] result = process(anglesDeg, anisotropy, intensity);
-      System.out.println(msg + ":  meanR= " + result[0] + "  meanTheta= " + result[1] * 180 / Math.PI + "  Std= " + result[2]);
+      System.out.println(msg + ":  meanR= " + result[0] + "  meanTheta= " + result[1] * 180 / Math.PI 
+              + "  Std= " + result[2]);
 
    }
    

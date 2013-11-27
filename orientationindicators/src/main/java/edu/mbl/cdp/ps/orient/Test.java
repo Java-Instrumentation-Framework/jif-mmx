@@ -94,6 +94,13 @@ public class Test {
       ImagePlus image = IJ.openImage(file);
       image.show();
    }
+      public static void loadOldFluorDataset() {
+      String rootDir = "C:/MicroManagerData/Samples/GFP_Crystals/2012_07_11";
+      String name = "SM_2012_0711_1749_1";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
+   
    public static void testAsImageJPlugin(Class<?> clazz, String testImagePath) {
       String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
       String pluginsDir = url.substring(5, url.length() - clazz.getName().length() - 6);
@@ -104,11 +111,12 @@ public class Test {
 //      loadDatasetXMT15();
 //      loadDataset2048();
 //      loadIJHyperstack();
-      loadMDimDataset();
+ //    loadMDimDataset();
 //      loadNonPolStack();
 //      loadFluorDataset();
 //      loadDiattenDataset();
 //      loadBirefrDataset();
+      loadOldFluorDataset();
 
       // run the plugin
       try {

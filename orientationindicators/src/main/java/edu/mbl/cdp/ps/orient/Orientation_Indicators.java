@@ -102,7 +102,12 @@ import org.json.JSONObject;
  CircularStatistics:
  [ ] What is the std for R, Theta?
  [ ] What is the average intensity?
- 
+
+/////////////////////////
+ [ ] Export to hyperstack... 
+[ ] Not seeing Ceiling from old data set 
+[x] add .5 to x,y when cell/grid size = [1x1]  
+[x] Doesn't draw 0 or 90 degree lines... add 0.0001 to orient for indicator
  
  */
 public class Orientation_Indicators {
@@ -173,6 +178,7 @@ public class Orientation_Indicators {
    String sampleStackTitle; //azimLine sample stack
    String azimStackTitle;//azim stack
    OrientationIndicators.Type type = OrientationIndicators.Type.LINE;
+   //OrientationIndicators.Type type = OrientationIndicators.Type.ELLIPSE;
    // Display grid interval...
    static final int INTERVAL_DEFAULT = 20;
    int interval;
@@ -773,39 +779,45 @@ public class Orientation_Indicators {
             } else {
                adjustedLength = (float) length;
             }
+            float x = aa.x;
+            float y = aa.y;
+            if(cellSize == 1) {
+               x = x + 0.5f;
+               y = y + 0.5f;
+            }
             // stroke, if indicator
             if (type == Type.LINE) {
-               _indicators.add(new Indicator(og.createLineAt(aa.x, aa.y,
+               _indicators.add(new Indicator(og.createLineAt(x, y,
                        aa.orientation, adjustedLength, aa.orientationVariance),
                        color, null));
             }
             if (type == Type.ELLIPSE) {
                if (cellSize > 1) {
-                  _indicators.add(new Indicator(og.createEllipseAt(aa.x, aa.y,
-                          aa.orientation, adjustedLength * 5, aa.orientationVariance),
+                  _indicators.add(new Indicator(og.createEllipseAt(x, y,
+                          aa.orientation, adjustedLength, aa.orientationVariance),
                           color, null));
                } else {
-                  _indicators.add(new Indicator(og.createLineAt(aa.x, aa.y,
+                  _indicators.add(new Indicator(og.createLineAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationVariance),
                           color, null));
                }
             }
             if (type == Type.FAN) {
                if (cellSize > 1) {
-                  _indicators.add(new Indicator(og.createFanAt(aa.x, aa.y,
+                  _indicators.add(new Indicator(og.createFanAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationVariance),
                           color, null));
                } else {
-                  _indicators.add(new Indicator(og.createLineAt(aa.x, aa.y,
+                  _indicators.add(new Indicator(og.createLineAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationVariance),
                           color, null));
                }
             }
          }
-         if (aa.orientation == 0 && aa.orientation == 90) {
-            System.out.println("anis: " + aa.anisotropy + " :  " + aa.orientation + " - [" + aa.x
-                    + "," + aa.y + "]");
-         }
+//         if (aa.orientation == 0 && aa.orientation == 90) {
+//            System.out.println("anis: " + aa.anisotropy + " :  " + aa.orientation + " - [" + aa.x
+//                    + "," + aa.y + "]");
+//         }
       }
       return _indicators;
    }

@@ -5,6 +5,7 @@
 package edu.mbl.cdp.ps.orient;
 
 //import edu.mbl.jif.gui.imaging.zoom.core.ZoomGraphics;
+import edu.mbl.jif.utils.EntityInspector;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
@@ -20,15 +21,15 @@ import java.awt.geom.Rectangle2D;
 public class OrientationIndicators {
 
    public enum Type {
+
       FAN, ELLIPSE, LINE
    }
-   
-   
+
    public Shape createFanAt(float x, float y, float angle, float length, float dAngle) {
       float overlap = 0f;
-      float dAngleDeg = (float)(dAngle*360/Math.PI*2);
-      Arc2D.Float arc1 = createArcAt(-overlap, 0, length + overlap, -dAngleDeg/2, dAngleDeg);
-      Arc2D.Float arc2 = createArcAt(overlap, 0, length + overlap, 180f-dAngleDeg/2, dAngleDeg);
+      float dAngleDeg = (float) (dAngle * 360 / Math.PI * 2);
+      Arc2D.Float arc1 = createArcAt(-overlap, 0, length + overlap, -dAngleDeg / 2, dAngleDeg);
+      Arc2D.Float arc2 = createArcAt(overlap, 0, length + overlap, 180f - dAngleDeg / 2, dAngleDeg);
       Area fanArea = new Area(arc1);
       Area area2 = new Area(arc2);
       fanArea.add(area2);
@@ -41,10 +42,9 @@ public class OrientationIndicators {
    }
    // TODO: if dAngle too small, it disappears... use a line instead.
 
-
    private Arc2D.Float createArcAt(float x, float y, float r, float angle0, float angle1) {
       //float d = (float) (r / Math.sqrt(2));
-      float d = r/2;
+      float d = r / 2;
       float x0 = x - d;
       float y0 = y - d;
       float w = 2 * d;
@@ -52,7 +52,6 @@ public class OrientationIndicators {
    }
 
    // Ellipse ===================================================================
-   
    public Shape createEllipseAt(float x, float y, float angle, float length, float dAngle) {
       float eccentricity = dAngle;
       Ellipse2D.Float ellipse = new Ellipse2D.Float(
@@ -65,7 +64,7 @@ public class OrientationIndicators {
       float cX = (float) rect.getCenterX();
       float cY = (float) rect.getCenterY();
       Shape rotatedEllipse = rotateShape(ellipse, -angle, cX, cY);
-      Shape xlated = createTranslatedShape(rotatedEllipse, x-cX, y-cY);
+      Shape xlated = createTranslatedShape(rotatedEllipse, x - cX, y - cY);
       return xlated;
    }
 
@@ -80,9 +79,13 @@ public class OrientationIndicators {
    }
 
    public Shape createLineAt(float x, float y, float angle, float length, float dAngle) {
-      float dX = (float) (length * Math.cos(angle)/2);
-      float dY = (float) (length * Math.sin(angle)/2);
+      float dX = (float) (length * Math.cos(angle) / 2) + 0.0001f;
+      float dY = (float) (length * Math.sin(angle) / 2) + 0.0001f;
       Line2D.Float line = new Line2D.Float(x + dX, y - dY, x - dX, y + dY);
+//      if (angle == 0 || angle == (float) (Math.PI / 2)) {
+//         System.out.println("angle:" + angle + "[" + dX + "," + dY + "]");
+//         System.out.println(line.getBounds2D().toString());
+//      }
       return line;
    }
 

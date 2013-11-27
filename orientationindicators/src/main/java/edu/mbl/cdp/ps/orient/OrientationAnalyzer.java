@@ -35,10 +35,12 @@ public class OrientationAnalyzer {
    // ROI Measurements =================================================================
    //
    private void measureFromRois() {
-      if (RoiManager.getInstance() != null) { // get Rois from RoiManager
+      if (RoiManager.getInstance() != null) { 
+         // get Rois from RoiManager
          Roi[] rois = RoiManager.getInstance().getSelectedRoisAsArray();
          doMeasurements(rois);
-      } else { // Use the Roi in the ImagePlus
+      } else { 
+         // get Roi from the ImagePlus
          Roi roi = imp1.getRoi();
          if (roi != null) {
             doMeasurements(new Roi[]{roi});
@@ -51,9 +53,6 @@ public class OrientationAnalyzer {
          System.out.println("Roi is a shape.");
       }
       //roi.getMask()
-              
-      
-
    }
 
    private void doMeasurements(Roi[] rois) {

@@ -142,9 +142,9 @@ public class IndicatorCanvas extends ImageCanvas {
                     srcRect.x, srcRect.y, srcRect.x + srcRect.width, srcRect.y + srcRect.height,
                     null);
          }
-         if (roi != null) {
-            drawRoi(roi, g);
-         }
+//         if (roi != null) {
+//            drawRoi(roi, g);
+//         }
       }
       if (hideImage) {
          g.setColor(Color.LIGHT_GRAY);
