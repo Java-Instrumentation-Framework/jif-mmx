@@ -13,8 +13,8 @@ public class PathUtils {
 	public static String getRelativePath(String antecentPath, String resultPath) {
 		String commonPath = commonPath(new String[]{antecentPath, resultPath});
 		String relPath = relativize(commonPath, antecentPath);
-//		System.out.println("commonPath = " + commonPath);
-//		System.out.println("relPath = " + relPath);
+		System.out.println("commonPath = " + commonPath);
+		System.out.println("relPath = " + relPath);
 		return relPath;
 	}
 	
