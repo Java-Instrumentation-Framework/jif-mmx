@@ -5,7 +5,7 @@
  */
 package edu.mbl.jif.mmxplugins;
 
-import edu.mbl.cdp.ps.orient.Orientation_Indicators;
+import edu.mbl.jif.ps.orient.Orientation_Indicators;
 import edu.mbl.jif.imaging.dataset.util.DatasetUtils;
 import ij.IJ;
 import ij.ImagePlus;
