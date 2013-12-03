@@ -46,7 +46,10 @@ public class ConvertMultiFocusToZSections extends Job {
    private int numSubImgsVertical;
    private Rectangle[] subImageRectangles;
 
-   public ConvertMultiFocusToZSections(JobMonitorPanel jobMonitor, String inputPath, String inputPrefix, String outputDir, String outputPrefix, int numSubImgsHorizontal, int numSubImgsVertical, Rectangle[] subImageRectangles) {
+   public ConvertMultiFocusToZSections(JobMonitorPanel jobMonitor, 
+           String inputPath, String inputPrefix, 
+           String outputDir, String outputPrefix, 
+           int numSubImgsHorizontal, int numSubImgsVertical, Rectangle[] subImageRectangles) {
       this.jobMonitor = jobMonitor;
       this.inputPath = inputPath;
       this.inputPrefix = inputPrefix;
