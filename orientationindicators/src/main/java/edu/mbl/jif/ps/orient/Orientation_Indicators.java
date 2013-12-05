@@ -154,13 +154,13 @@ public class Orientation_Indicators {
 
    private boolean promptForCeiling = false;
    private float displayCeiling;
+   OrientationIndicators.Type indicatorType;
 
 //<editor-fold defaultstate="collapsed" desc="Variables from Prefs">
    //
    private static final String key = "oi.";
-   private static final String key_sampleStackTitle = "sampleStackTitle";
-   private static final String key_azimStackTitle = "azimStackTitle";
    private static final String key_interval = "interval";
+   private static final String key_indicatorType = "indicatorType";
    private static final String key_scaleWithMag = "scaleWithMag";
    private static final String key_indicatorWidth = "indicatorWidth";
    private static final String key_indicatorLength = "indicatorLength";
@@ -172,14 +172,13 @@ public class Orientation_Indicators {
    private static final String key_centerMarkers = "centerMarkers";
    private static final String key_color = "color";
    private static final String key_indicatorOpacity = "indicatorOpacity";
+   private static final String key_varyOpacity = "varyOpacity";
    private static final String key_mapAnisotropyToAlpha = "mapAnisotropyToAlpha";
    private static final String key_displayCeiling = "displayCeiling";
 
    //// Variables from Preferences:
-   String sampleStackTitle; //azimLine sample stack
-   String azimStackTitle;//azim stack
-   OrientationIndicators.Type type = OrientationIndicators.Type.LINE;
-   //OrientationIndicators.Type type = OrientationIndicators.Type.ELLIPSE;
+   int type;
+
    // Display grid interval...
    static final int INTERVAL_DEFAULT = 20;
    int interval;
@@ -198,13 +197,12 @@ public class Orientation_Indicators {
    boolean centerMarkers;
    String colorStr;
    float opacity;
+   boolean varyOpacity;
    boolean mapAnisotropyToAlpha;  // Alpha mapped to anisotropy (or intensity)
    private boolean rerun = false;
 
    public void loadFromPrefs() {
-      sampleStackTitle = Prefs.get(key + key_sampleStackTitle, "sampleStack"); //azimLine sample stack
-      azimStackTitle = Prefs.get(key + key_azimStackTitle, "azimStack"); //azim stack               
-      // TODO OrientationIndicators.Type type = OrientationIndicators.Type.LINE;               
+      this.type = (int) Prefs.get(key + key_indicatorType, 0);
       interval = (int) Prefs.get(key + key_interval, INTERVAL_DEFAULT);
       scaleWithMag = (boolean) Prefs.get(key + key_scaleWithMag, true);
       indicatorWidth = (float) Prefs.get(key + key_indicatorWidth, 2d);
@@ -217,14 +215,14 @@ public class Orientation_Indicators {
       centerMarkers = Prefs.get(key + key_centerMarkers, false);
       colorStr = Prefs.get(key + key_color, "Red");
       opacity = (float) Prefs.get(key + key_indicatorOpacity, 1f);
+      varyOpacity = (boolean) Prefs.get(key + key_varyOpacity, false);
       mapAnisotropyToAlpha = (boolean) Prefs.get(key + key_mapAnisotropyToAlpha, false);
       displayCeiling = (float) Prefs.get(key + key_displayCeiling, 1d);
    }
 
    private void saveToPref() {
-      Prefs.set(key + key_sampleStackTitle, sampleStackTitle);
-      Prefs.set(key + key_azimStackTitle, azimStackTitle);
       Prefs.set(key + key_interval, interval);
+      Prefs.set(key + key_indicatorType, type);
       Prefs.set(key + key_scaleWithMag, scaleWithMag);
       Prefs.set(key + key_indicatorWidth, indicatorWidth);
       Prefs.set(key + key_indicatorLength, indicatorLength);
@@ -236,6 +234,7 @@ public class Orientation_Indicators {
       Prefs.set(key + key_centerMarkers, centerMarkers);
       Prefs.set(key + key_color, colorStr);
       Prefs.set(key + key_indicatorOpacity, opacity);
+      Prefs.set(key + key_varyOpacity, varyOpacity);
       Prefs.set(key + key_mapAnisotropyToAlpha, mapAnisotropyToAlpha);
       Prefs.set(key + key_displayCeiling, displayCeiling);
       Prefs.savePreferences();
@@ -246,11 +245,13 @@ public class Orientation_Indicators {
    // Color
    static Color DefaultColor = Color.white;
 
+   Color baseColor = Color.RED;
    Color color = colorHSBA(0f, 1f, 1f, 1f);
-   boolean mapOrientationToHue = (boolean) Prefs.get("oi.mapOrientationToHue", false); // Hue mapped to orientation
    static String[] colors = {"Red", "Green", "Blue", "Magenta", "Cyan", "Yellow", "Orange", "Black", "White"};
 
+   boolean mapOrientationToHue = (boolean) Prefs.get("oi.mapOrientationToHue", false); // Hue mapped to orientation
    //
+
    public static Color colorHSBA(float h, float s, float b, float alpha) {
       int aint = (int) (alpha * 254);
       int rgb = Color.HSBtoRGB(h, s, b);
@@ -386,76 +387,43 @@ public class Orientation_Indicators {
 //</editor-fold>
 
    public boolean showDialog() {
-//      String azimChoice = "no azim stack";
-//      int[] wList = WindowManager.getIDList();
-//      if (wList == null) {
-//         IJ.noImage();
-//         return false;
-//      }
-//      String[] sampleTitles = new String[wList.length];
-//      for (int i = 0; i < wList.length; i++) {
-//         ImagePlus imp = WindowManager.getImage(wList[i]);
-//         String str = imp != null ? imp.getTitle() : "";
-//         if (str.contains("(")) {
-//            str = WindowManager.getImage(wList[i]).getWindow().getTitle();
-//            int i0 = str.indexOf('(');
-//            if (i0 > 1) {
-//               str = str.substring(0, i0 - 1);
-//            }
-//         }
-//         sampleTitles[i] = str;
-//      }
-//      String sampleChoice = sampleTitles[0];
-//      for (int i = 1; i < (wList.length); i++) {
-//         if (sampleTitles[i] == null ? sampleStackTitle == null : sampleTitles[i].equals(
-//                 sampleStackTitle)) {
-//            sampleChoice = sampleStackTitle;
-//         }
-//      }
-//      if (sampleChoice.startsWith(LiveWindowName) && sampleTitles.length > 1) {
-//         sampleChoice = sampleTitles[1];
-//      }
-//      String[] azimTitles = new String[wList.length + 1];
-//      azimTitles[0] = "no azim stack";
-//      for (int i = 1; i < wList.length + 1; i++) {
-//         azimTitles[i] = sampleTitles[i - 1];
-//      }
-//      for (int i = 1; i < (wList.length + 1); i++) {
-//         if (azimTitles[i] == null ? azimStackTitle == null : azimTitles[i].equals(azimStackTitle)) {
-//            azimChoice = azimStackTitle;
-//         }
-//      }
-      //String[] yesNoQL = new String[]{"Yes", "No"};
-      String indicatorType = "Line";
-      //float width = 1;
-      //
       GenericDialog gd = new GenericDialog("Orientation Indicators");
-      //gd.addChoice("sample_stack_title:", sampleTitles, sampleChoice);
-      //gd.addChoice("azim_stack_title:", azimTitles, azimChoice);
       if (promptForCeiling) {
          gd.addNumericField(displayCeilingPrompt, displayCeiling, 0, 8, displayCeilingUnits);
       }
       gd.addNumericField("Interval (at 100%): ", interval, 0, 4, "pixels");
-      gd.addCheckbox("Scale interval with mag.", scaleWithMag);
-      //gd.addChoice("Indicator: ", new String[]{"Line", "Ellipse", "Fan"}, indicatorType);
-      gd.addNumericField("Length: ", indicatorLength * 100, 0, 3, "% of interval");
+      gd.addCheckbox("Scale interval with zoom", scaleWithMag);
+      //
+      String typeDefault = "Line";
+      if (type == 0) {
+         typeDefault = "Line";
+      } else if (type == 1) {
+         typeDefault = "Ellipse";
+      } else if (type == 2) {
+         typeDefault = "Fan";
+      }
+      gd.addChoice("Indicator: ", new String[]{"Line", "Ellipse", "Fan"}, typeDefault);
+      //
+      gd.addChoice("Color: ", colors, colorStr);
+      gd.addNumericField("Opacity: ", opacity, 2, 4, "(0... 1)");
+      
       gd.addNumericField("Width: ", indicatorWidth, 1, 4, "pixels");
-
+      gd.addNumericField("Length: ", indicatorLength * 100, 0, 3, "% of interval");
       gd.addCheckbox("Length proporational", ratioLengthChoice);
-      gd.addCheckbox("      using Aniso * Intensity", multiplyForLength);
+      gd.addCheckbox("   (use Anisotropy*Intensity)", multiplyForLength);
       // TODO Add option to use R or R*I for proportional length.
       gd.addNumericField("Threshold min: ", thresholdMin, 2, 4, "(0... 1)");
       gd.addNumericField("Threshold max: ", thresholdMax, 2, 4, "(0... 1)");
-      gd.addChoice("Color: ", colors, colorStr);
-      gd.addNumericField("Opacity: ", opacity, 2, 4, "(0... 1)");
+      gd.addMessage("Experimental...");
+      gd.addCheckbox("Change opacity with variance", varyOpacity);
       //gd.addCheckbox("Dropshadow", dropshadow);
       //gd.addCheckbox("Show_Center", centerMarkers);
+
       gd.showDialog();
       if (gd.wasCanceled()) {
          return false;
       }
-      //int index1 = gd.getNextChoiceIndex();
-      //int index2 = gd.getNextChoiceIndex();
+
       if (promptForCeiling) {
          displayCeiling = (float) gd.getNextNumber();
       }
@@ -464,7 +432,28 @@ public class Orientation_Indicators {
       if (scaleWithMag && interval < 2) {
          interval = 2;
       }
-      //indicatorType = gd.getNextChoice();
+      //
+      String typeStr = gd.getNextChoice();
+      if (typeStr.equalsIgnoreCase("Line")) {
+         indicatorType = OrientationIndicators.Type.LINE;
+         type = 0;
+      } else if (typeStr.equalsIgnoreCase("Ellipse")) {
+         indicatorType = OrientationIndicators.Type.ELLIPSE;
+         type = 1;
+      } else if (typeStr.equalsIgnoreCase("Fan")) {
+         indicatorType = OrientationIndicators.Type.FAN;
+         type = 2;
+      }
+      //
+      colorStr = gd.getNextChoice();
+      opacity = (float) gd.getNextNumber();
+      if (opacity > 1) {
+         opacity = 1;
+      }
+      baseColor = getColor(colorStr);
+      color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
+      //
+      indicatorWidth = (float) gd.getNextNumber();
       indicatorLength = (float) gd.getNextNumber();
       indicatorLength = indicatorLength / 100;
       if (indicatorLength > 3) {
@@ -473,37 +462,23 @@ public class Orientation_Indicators {
       if (indicatorLength < 0.25) {
          indicatorLength = 0.25f;
       }
-      indicatorWidth = (float) gd.getNextNumber();
       ratioLengthChoice = gd.getNextBoolean();
       multiplyForLength = gd.getNextBoolean();
+      //
       thresholdMin = (float) gd.getNextNumber();
       thresholdMax = (float) gd.getNextNumber();
-      colorStr = gd.getNextChoice();
-      opacity = (float) gd.getNextNumber();
-      if (opacity > 1) {
-         opacity = 1;
-      }
-      //dropshadow = gd.getNextBoolean();
-      //centerMarkers = gd.getNextBoolean();
-      //EnableIndicators = "Yes";//gd.getNextChoice();              
+      
       if (thresholdMin < 0) {
          thresholdMin = 0;
       }
       if (thresholdMax > 1) {
          thresholdMax = 1;
       }
-//      imp1 = WindowManager.getImage(wList[index1]);
-//      sampleStackTitle = sampleTitles[index1];
-//      azimStackTitle = azimTitles[index2];
-//      if ("no azim stack".equals(azimStackTitle)) {
-//         //only to assign a valid ImagePlus to imp2 which is not used when NoBg
-//         imp2 = WindowManager.getImage(wList[index1]);
-//      } else {
-//         imp2 = WindowManager.getImage(wList[index2 - 1]);
-//      }
-      //if (EnableIndicators.equals("Yes")) {
-      Color myColor = getColor(colorStr);
-      color = colorHSBA(hueFromColor(myColor), 1f, 1f, opacity);
+      // Experimental...
+      varyOpacity = gd.getNextBoolean();
+      //dropshadow = gd.getNextBoolean();
+      //centerMarkers = gd.getNextBoolean();
+      
       //
       saveToPref();
       //}
@@ -521,8 +496,8 @@ public class Orientation_Indicators {
       height = this.imp1.getHeight();
       createfloatArrays(imp1, index, psType);
       //MathUtils.displayArrayAsImage("Orient", orient, width, height);
-      Color myColor = getColor(colorStr);
-      color = colorHSBA(hueFromColor(myColor), 1f, 1f, opacity);
+      //Color myColor = getColor(colorStr);
+      color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
       canvas.setIndicatorsColor(color);
       boolean regenerate = setScaling((float) canvas.getMagnification()) || (lastIndex != index)
               || rerun;
@@ -591,9 +566,9 @@ public class Orientation_Indicators {
       System.out.println("Generating...");
       //System.out.println("scaledCellSizer = " + scaledCellSize);
       cellSizeLabel.setText("[" + scaledCellSize + "x" + scaledCellSize + "]");
-      areas = generateAreas(imp1, anisotropy, orient, intensity, scaledCellSize, type);
+      areas = generateAreas(imp1, anisotropy, orient, intensity, scaledCellSize, indicatorType);
       indicators = generateIndicators(imp1, areas,
-              scaledCellSize, type, scaledLength, ratioLengthChoice);
+              scaledCellSize, indicatorType, scaledLength, ratioLengthChoice);
       canvas.setIndicators(indicators);
       //canvas.repaint();
    }
@@ -631,7 +606,7 @@ public class Orientation_Indicators {
 //         }
 //      }
       // What if interval ==1 ???
-
+      float maxVariance = 0;
       // for each cell
       for (int n = 0; n < nX; n++) {
          for (int m = 0; m < nY; m++) {
@@ -670,6 +645,9 @@ public class Orientation_Indicators {
                //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
                aa = new AveragedArea(centerX, centerY,
                        cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
+               if (maxVariance < cellAverages[2]) {
+                  maxVariance = cellAverages[2];
+               }
             } else {
                int offset = m * w + n;
                float i;
@@ -684,7 +662,7 @@ public class Orientation_Indicators {
             areas.add(aa);
          }
       }
-
+System.out.println("maxVariance = " + maxVariance);
       return areas;
    }
 
@@ -719,6 +697,7 @@ public class Orientation_Indicators {
       // What if interval ==1 ???
 
       // for each cell
+      float maxVariance = 0;
       for (int n = 0; n < nX; n++) {
          for (int m = 0; m < nY; m++) {
 //            int x0 = roiRect.x + (n * cellSize);
@@ -756,6 +735,9 @@ public class Orientation_Indicators {
                //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
                aa = new AveragedArea(centerX, centerY,
                        cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
+               if (maxVariance < cellAverages[2]) {
+                  maxVariance = cellAverages[2];
+               }
             } else {
                int offset = m * w + n;
                float i;
@@ -770,11 +752,9 @@ public class Orientation_Indicators {
             areas.add(aa);
          }
       }
-
+      System.out.println("maxVariance = " + maxVariance);
       return areas;
    }
-
-   
 
    private Vector<Indicator> generateIndicators(ImagePlus imp,
            Vector<AveragedArea> areas,
@@ -800,17 +780,27 @@ public class Orientation_Indicators {
                x = x + 0.5f;
                y = y + 0.5f;
             }
+            //
+            
+            Color adjustedColor;
+            if (varyOpacity && cellSize > 1) {
+               float thisOpacity = opacity * (1 - aa.orientationStd);
+               if(thisOpacity<0) thisOpacity=0;
+               adjustedColor = colorHSBA(hueFromColor(baseColor), 1f, 1f, thisOpacity);
+            } else {
+               adjustedColor = color;
+            }
             // stroke, if indicator
             if (type == Type.LINE) {
                _indicators.add(new Indicator(og.createLineAt(x, y,
                        aa.orientation, adjustedLength, aa.orientationStd),
-                       color, null));
+                       adjustedColor, null));
             }
             if (type == Type.ELLIPSE) {
                if (cellSize > 1) {
                   _indicators.add(new Indicator(og.createEllipseAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationStd),
-                          color, null));
+                          adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationStd),
@@ -821,7 +811,7 @@ public class Orientation_Indicators {
                if (cellSize > 1) {
                   _indicators.add(new Indicator(og.createFanAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationStd),
-                          color, null));
+                          adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
                           aa.orientation, adjustedLength, aa.orientationStd),
@@ -1111,8 +1101,8 @@ public class Orientation_Indicators {
               + ", indicatorsCheckBox=" + indicatorsCheckBox + ", lastIndex=" + lastIndex
               + ", psType=" + psType
               + ", scaledCellSize=" + scaledCellSize + ", lastCellSize=" + lastCellSize
-              + ", retardanceCeiling=" + displayCeiling + ", sampleStackTitle=" + sampleStackTitle
-              + ", azimStackTitle=" + azimStackTitle + ", type=" + type + ", interval=" + interval
+              + ", retardanceCeiling=" + displayCeiling
+              + ", type=" + type + ", interval=" + interval
               + ", scaleWithMag=" + scaleWithMag + ", indicatorWidth=" + indicatorWidth
               + ", indicatorLength=" + indicatorLength + ", ratioLengthChoice=" + ratioLengthChoice
               + ", thresholdMax=" + thresholdMax + ", thresholdMin=" + thresholdMin

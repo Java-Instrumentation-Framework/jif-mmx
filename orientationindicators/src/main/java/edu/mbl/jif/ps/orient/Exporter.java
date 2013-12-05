@@ -120,7 +120,10 @@ public class Exporter {
       }
 
       if (data) { // Export data
-
+         File f = new File(dataFileName);
+         if (!f.getParentFile().exists()) { // create dir if it does not exist
+            f.getParentFile().mkdir();
+         }
          try {
             datafile = DataFileFactory.createWriter("8859_2", false);
             datafile.setDataFormat(new CSVFormat());

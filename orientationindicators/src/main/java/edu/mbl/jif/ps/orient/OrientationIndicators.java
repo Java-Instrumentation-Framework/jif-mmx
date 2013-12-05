@@ -25,9 +25,10 @@ public class OrientationIndicators {
       FAN, ELLIPSE, LINE
    }
 
-   public Shape createFanAt(float x, float y, float angle, float length, float dAngle) {
+   public Shape createFanAt(float x, float y, float angle, float lengthIn, float dAngle) {
       float overlap = 0f;
       float dAngleDeg = (float) (dAngle * 360 / Math.PI * 2);
+      float length = lengthIn * (1-dAngle);
       Arc2D.Float arc1 = createArcAt(-overlap, 0, length + overlap, -dAngleDeg / 2, dAngleDeg);
       Arc2D.Float arc2 = createArcAt(overlap, 0, length + overlap, 180f - dAngleDeg / 2, dAngleDeg);
       Area fanArea = new Area(arc1);
@@ -52,11 +53,13 @@ public class OrientationIndicators {
    }
 
    // Ellipse ===================================================================
-   public Shape createEllipseAt(float x, float y, float angle, float length, float dAngle) {
+   public Shape createEllipseAt(float x, float y, float angle, float lengthIn, float dAngle) {
       float eccentricity = dAngle;
+      float length = lengthIn * (1-dAngle);
       Ellipse2D.Float ellipse = new Ellipse2D.Float(
               0 - length, -length * eccentricity,
               length, length * eccentricity);
+      
 //      Ellipse2D.Float ellipse = new Ellipse2D.Float(
 //              0 - length / 2, -length * eccentricity / 2,
 //              length/2, length * eccentricity/2);

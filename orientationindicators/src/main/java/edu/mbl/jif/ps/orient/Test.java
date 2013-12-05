@@ -25,10 +25,23 @@ public class Test {
    // ====================================================================================
    // Testing as an ImageJ Plugin... 
    //
-
-   public static void loadDataset2048() {
-      String rootDir = "C:\\MicroManagerData\\project\\2048x2048";
+   
+   public static void loadBrainSlice() {
+      String rootDir = "C:/MicroManagerData/project/2048x2048";
       String name = "SM_2012_1126_1447_1";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
+   
+   public static void loadCalciteFluor() {
+      String rootDir = "C:/MicroManagerData/DarkfieldBiref/2012_09_13_CalciteCrystal40x";
+      String name = "SM_2012_0915_0047_1";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
+   public static void loadBlobsFluor() {
+      String rootDir = "C:/MicroManagerData/FluorPol_DataSet";
+      String name = "SM_2012_0928_1724_1";
       ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
       image.show();
    }
@@ -77,6 +90,12 @@ public class Test {
       ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
       image.show();
    }
+   public static void loadBirefrMultiDim() {
+      String rootDir = "C:/MicroManagerData/project/testdata/2012_08_27";
+      String name = "SMT_2012_0827_1643_1";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
 
    public static void loadIJHyperstack() {
       String file = "C:/MicroManagerData/dataOct13/SMS_2013_1024_1857_12/SMS_2013_1024_1857_12_MMStack_Pos0.ome.tif";
@@ -110,9 +129,12 @@ public class Test {
 //      loadNonPolStack();
 //      loadFluorDataset();
 //      loadDiattenDataset();
-      loadBirefrDataset();
-      loadOldFluorDataset();
-
+//      loadBirefrDataset();
+//      loadOldFluorDataset();
+      loadCalciteFluor();
+      loadBlobsFluor();
+      loadBrainSlice();
+      loadBirefrMultiDim();
       // run the plugin
       try {
          Thread.sleep(500);
@@ -154,7 +176,7 @@ public class Test {
    
    public static void main(String[] args) {
       // set the plugins.dir property to make the plugin appear in the Plugins menu
-      //Class<?> clazz = edu.mbl.cdp.ps.plugins.Orientation_Indicators.class;
+      //Class<?> clazz = edu.mbl.jif.ps.plugins.Orientation_Indicators.class;
       clazz = OrientationIndicatorsPlugin.class;
       String testImagePath = "C:/_Dev/_Dev_Data/TestImages/testData/PS_Aster/PS_03_0825_1753_24.tif";
       testAsImageJPlugin(clazz, testImagePath);
