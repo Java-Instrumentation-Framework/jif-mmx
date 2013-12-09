@@ -135,6 +135,8 @@
                      <target name="copy and rename file">
                         <copy file="${project.build.directory}/${project.build.finalName}-all.${project.packaging}" 
                               tofile="C:/Micro-Manager-1.4/plugins/${project.build.finalName}-all.${project.packaging}" />
+                        <copy file="${project.build.directory}/${project.build.finalName}-all.${project.packaging}" 
+                              tofile="C:/Users/GBH/Documents/My Dropbox/Public/${project.build.finalName}-all.${project.packaging}" />
                      </target>
                   </configuration>
                   <goals>
