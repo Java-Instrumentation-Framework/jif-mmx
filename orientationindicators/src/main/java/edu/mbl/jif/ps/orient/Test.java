@@ -26,6 +26,13 @@ public class Test {
    // Testing as an ImageJ Plugin... 
    //
    
+   
+   public static void loadMollys() {
+      String rootDir = "C:\\MicroManagerData\\Molly";
+      String name = "SM_2013_0814_2012_1_Z_Processed";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
    public static void loadBrainSlice() {
       String rootDir = "C:/MicroManagerData/project/2048x2048";
       String name = "SM_2012_1126_1447_1";
@@ -131,10 +138,11 @@ public class Test {
 //      loadDiattenDataset();
 //      loadBirefrDataset();
 //      loadOldFluorDataset();
-      loadCalciteFluor();
-      loadBlobsFluor();
-      loadBrainSlice();
-      loadBirefrMultiDim();
+//      loadCalciteFluor();
+//      loadBlobsFluor();
+//      loadBrainSlice();
+//      loadBirefrMultiDim();
+      loadMollys();
       // run the plugin
       try {
          Thread.sleep(500);

@@ -229,7 +229,7 @@ public class Exporter {
          Vector<AveragedArea> roiAreas = getAverageAreasInsideRoi();
          System.out.println("\nAreas within Roi (" + roiAreas.size() + "):");
          for (AveragedArea averagedArea : roiAreas) {
-            //System.out.println(averagedArea.toString());
+            System.out.println(averagedArea.toString());
             DataRow row = datafile.next();
             row.add(currentChannel);
             row.add(slice);
@@ -335,12 +335,19 @@ public class Exporter {
       return roiRect;
    }
 
+//   public boolean insideRoiX(float x, Rectangle roiRect) {
+//      return x >= roiRect.x && x <= roiRect.x + roiRect.width;
+//   }
+//
+//   public boolean insideRoiY(float y, Rectangle roiRect) {
+//      return y >= roiRect.y && y <= roiRect.y + roiRect.height;
+//   }
    public boolean insideRoiX(float x, Rectangle roiRect) {
-      return x >= roiRect.x && x <= roiRect.x + roiRect.width;
+      return x >= roiRect.x && x < roiRect.x + roiRect.width;
    }
 
    public boolean insideRoiY(float y, Rectangle roiRect) {
-      return y >= roiRect.y && y <= roiRect.y + roiRect.height;
+      return y >= roiRect.y && y < roiRect.y + roiRect.height;
    }
 
    private String getDefaultFilename(ImagePlus imp, boolean isData) {

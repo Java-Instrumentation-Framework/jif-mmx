@@ -406,7 +406,7 @@ public class Orientation_Indicators {
       //
       gd.addChoice("Color: ", colors, colorStr);
       gd.addNumericField("Opacity: ", opacity, 2, 4, "(0... 1)");
-      
+
       gd.addNumericField("Width: ", indicatorWidth, 1, 4, "pixels");
       gd.addNumericField("Length: ", indicatorLength * 100, 0, 3, "% of interval");
       gd.addCheckbox("Length proporational", ratioLengthChoice);
@@ -467,7 +467,7 @@ public class Orientation_Indicators {
       //
       thresholdMin = (float) gd.getNextNumber();
       thresholdMax = (float) gd.getNextNumber();
-      
+
       if (thresholdMin < 0) {
          thresholdMin = 0;
       }
@@ -478,7 +478,7 @@ public class Orientation_Indicators {
       varyOpacity = gd.getNextBoolean();
       //dropshadow = gd.getNextBoolean();
       //centerMarkers = gd.getNextBoolean();
-      
+
       //
       saveToPref();
       //}
@@ -608,8 +608,8 @@ public class Orientation_Indicators {
       // What if interval ==1 ???
       float maxVariance = 0;
       // for each cell
-      for (int n = 0; n < nX; n++) {
-         for (int m = 0; m < nY; m++) {
+      for (int m = 0; m < nY; m++) {
+         for (int n = 0; n < nX; n++) {
 //            int x0 = roiRect.x + (n * cellSize);
 //            int y0 = roiRect.y + (m * cellSize);
             int x0 = (n * cellSize);
@@ -645,9 +645,9 @@ public class Orientation_Indicators {
                //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
                aa = new AveragedArea(centerX, centerY,
                        cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
-               if (maxVariance < cellAverages[2]) {
-                  maxVariance = cellAverages[2];
-               }
+//               if (maxVariance < cellAverages[2]) {
+//                  maxVariance = cellAverages[2];
+//               }
             } else {
                int offset = m * w + n;
                float i;
@@ -662,100 +662,100 @@ public class Orientation_Indicators {
             areas.add(aa);
          }
       }
-System.out.println("maxVariance = " + maxVariance);
+      //System.out.println("maxVariance = " + maxVariance);
       return areas;
    }
 
-   private Vector<AveragedArea> generateAreasFromRois(ImagePlus imp,
-           float[] anisotropy, float[] orient, float[] intensity,
-           int cellSize, Type type) {
-      areas = new Vector<AveragedArea>();
-      CircularStatistics stat = new CircularStatistics();
-
-      int w = imp.getWidth();
-      int h = imp.getHeight();
-
-      int nX = w / cellSize;
-      int nY = h / cellSize;
-      //int nX = w / cellSize - 1;
-      //int nY = h / cellSize - 1;
-
-      //int nX = (int) Math.ceil((float) roiRect.width / interval + 0.5);
-      //int nY = (int) Math.ceil((float) roiRect.height / interval + 0.5);
-      //System.out.println("nX, nY: " + nX +", " + nY);
-      //      xIHalf = (int) Math.ceil((float) interval / 2);
-      //      yIHalf = (int) Math.ceil((float) interval / 2);
-      int numCells = nX * nY;
-      float[] orientCell = new float[cellSize * cellSize];
-      float[] anisoptropyCell = new float[cellSize * cellSize];
-      float[] intensityCell = new float[cellSize * cellSize];
-//      for (int i = 1; i < iMax; i++) {
-//         for (int j = 1; j < jMax; j++) {
-//            drawGlyphs(i, j, graphics);
+//   private Vector<AveragedArea> generateAreasFromRois(ImagePlus imp,
+//           float[] anisotropy, float[] orient, float[] intensity,
+//           int cellSize, Type type) {
+//      areas = new Vector<AveragedArea>();
+//      CircularStatistics stat = new CircularStatistics();
+//
+//      int w = imp.getWidth();
+//      int h = imp.getHeight();
+//
+//      int nX = w / cellSize;
+//      int nY = h / cellSize;
+//      //int nX = w / cellSize - 1;
+//      //int nY = h / cellSize - 1;
+//
+//      //int nX = (int) Math.ceil((float) roiRect.width / interval + 0.5);
+//      //int nY = (int) Math.ceil((float) roiRect.height / interval + 0.5);
+//      //System.out.println("nX, nY: " + nX +", " + nY);
+//      //      xIHalf = (int) Math.ceil((float) interval / 2);
+//      //      yIHalf = (int) Math.ceil((float) interval / 2);
+//      int numCells = nX * nY;
+//      float[] orientCell = new float[cellSize * cellSize];
+//      float[] anisoptropyCell = new float[cellSize * cellSize];
+//      float[] intensityCell = new float[cellSize * cellSize];
+////      for (int i = 1; i < iMax; i++) {
+////         for (int j = 1; j < jMax; j++) {
+////            drawGlyphs(i, j, graphics);
+////         }
+////      }
+//      // What if interval ==1 ???
+//
+//      // for each cell
+//      float maxVariance = 0;
+//      for (int m = 0; m < nY; m++) {
+//         for (int n = 0; n < nX; n++) {
+////            int x0 = roiRect.x + (n * cellSize);
+////            int y0 = roiRect.y + (m * cellSize);
+//            int x0 = (n * cellSize);
+//            int y0 = (m * cellSize);
+////            float centerX = x0 + cellSize / 2f;
+////            float centerY = y0 + cellSize / 2f;
+//            //System.out.println("  " + x0 + ", " + y0 + ", " +centerX + ", " +centerY );
+//            AveragedArea aa;
+//            if (cellSize > 1) {
+//               float centerX = x0 + cellSize / 2f;
+//               float centerY = y0 + cellSize / 2f;
+//               // within each cell, calculate averages...
+//               int count = 0;
+//               for (int i = 0; i < cellSize; i++) {
+//                  for (int j = 0; j < cellSize; j++) {
+//                     int offset = (y0 + j) * w + (x0 + i);
+//                     //int offset = j * w + i;
+//                     if (offset >= orient.length) {
+//                        break;
+//                     }
+//                     orientCell[count] = (float) orient[offset];
+//                     anisoptropyCell[count] = (float) anisotropy[offset];
+//                     if (intensity == null) {
+//                        intensityCell[count] = 1.0f;
+//                     } else {
+//                        intensityCell[count] = (float) intensity[offset];
+//                     }
+//                     count++;
+//                  }
+//               }
+//               float[] cellAverages = stat.process(orientCell, anisoptropyCell, intensityCell);
+//               //process returns: [meanR, meanTheta, std, intensity] ??? which std
+//               //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
+//               aa = new AveragedArea(centerX, centerY,
+//                       cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
+//               if (maxVariance < cellAverages[2]) {
+//                  maxVariance = cellAverages[2];
+//               }
+//            } else {
+//               int offset = m * w + n;
+//               float i;
+//               if (intensity == null) {
+//                  i = 1.0f;
+//               } else {
+//                  i = (float) intensity[offset];
+//               }
+//               aa = new AveragedArea(x0, y0, i,
+//                       (float) anisotropy[offset], (float) orient[offset], 0);
+//               
+//            }
+//            areas.add(aa);
 //         }
 //      }
-      // What if interval ==1 ???
-
-      // for each cell
-      float maxVariance = 0;
-      for (int n = 0; n < nX; n++) {
-         for (int m = 0; m < nY; m++) {
-//            int x0 = roiRect.x + (n * cellSize);
-//            int y0 = roiRect.y + (m * cellSize);
-            int x0 = (n * cellSize);
-            int y0 = (m * cellSize);
-//            float centerX = x0 + cellSize / 2f;
-//            float centerY = y0 + cellSize / 2f;
-            //System.out.println("  " + x0 + ", " + y0 + ", " +centerX + ", " +centerY );
-            AveragedArea aa;
-            if (cellSize > 1) {
-               float centerX = x0 + cellSize / 2f;
-               float centerY = y0 + cellSize / 2f;
-               // within each cell, calculate averages...
-               int count = 0;
-               for (int i = 0; i < cellSize; i++) {
-                  for (int j = 0; j < cellSize; j++) {
-                     int offset = (y0 + j) * w + (x0 + i);
-                     //int offset = j * w + i;
-                     if (offset >= orient.length) {
-                        break;
-                     }
-                     orientCell[count] = (float) orient[offset];
-                     anisoptropyCell[count] = (float) anisotropy[offset];
-                     if (intensity == null) {
-                        intensityCell[count] = 1.0f;
-                     } else {
-                        intensityCell[count] = (float) intensity[offset];
-                     }
-                     count++;
-                  }
-               }
-               float[] cellAverages = stat.process(orientCell, anisoptropyCell, intensityCell);
-               //process returns: [meanR, meanTheta, std, intensity] ??? which std
-               //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
-               aa = new AveragedArea(centerX, centerY,
-                       cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
-               if (maxVariance < cellAverages[2]) {
-                  maxVariance = cellAverages[2];
-               }
-            } else {
-               int offset = m * w + n;
-               float i;
-               if (intensity == null) {
-                  i = 1.0f;
-               } else {
-                  i = (float) intensity[offset];
-               }
-               aa = new AveragedArea(x0, y0, i,
-                       (float) anisotropy[offset], (float) orient[offset], 0);
-            }
-            areas.add(aa);
-         }
-      }
-      System.out.println("maxVariance = " + maxVariance);
-      return areas;
-   }
-
+//      System.out.println("maxVariance = " + maxVariance);
+//      return areas;
+//   }
    private Vector<Indicator> generateIndicators(ImagePlus imp,
            Vector<AveragedArea> areas,
            int cellSize, Type type, float length, boolean lengthProportionalToAnisotropy) {
@@ -781,11 +781,13 @@ System.out.println("maxVariance = " + maxVariance);
                y = y + 0.5f;
             }
             //
-            
+
             Color adjustedColor;
             if (varyOpacity && cellSize > 1) {
                float thisOpacity = opacity * (1 - aa.orientationStd);
-               if(thisOpacity<0) thisOpacity=0;
+               if (thisOpacity < 0) {
+                  thisOpacity = 0;
+               }
                adjustedColor = colorHSBA(hueFromColor(baseColor), 1f, 1f, thisOpacity);
             } else {
                adjustedColor = color;
