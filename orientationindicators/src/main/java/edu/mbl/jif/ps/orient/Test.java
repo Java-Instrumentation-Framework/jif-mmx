@@ -122,7 +122,7 @@ public class Test {
       image.show();
    }
    
-   public static void testAsImageJPlugin(Class<?> clazz, String testImagePath) {
+   public static void testAsImageJPlugin(Class<?> clazz) {
       String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
       String pluginsDir = url.substring(5, url.length() - clazz.getName().length() - 6);
       System.setProperty("plugins.dir", pluginsDir);
@@ -134,7 +134,7 @@ public class Test {
 //      loadIJHyperstack();
  //    loadMDimDataset();
 //      loadNonPolStack();
-//      loadFluorDataset();
+      loadFluorDataset();
 //      loadDiattenDataset();
 //      loadBirefrDataset();
 //      loadOldFluorDataset();
@@ -142,7 +142,7 @@ public class Test {
 //      loadBlobsFluor();
 //      loadBrainSlice();
 //      loadBirefrMultiDim();
-      loadMollys();
+//      loadMollys();
       // run the plugin
       try {
          Thread.sleep(500);
@@ -186,8 +186,7 @@ public class Test {
       // set the plugins.dir property to make the plugin appear in the Plugins menu
       //Class<?> clazz = edu.mbl.jif.ps.plugins.Orientation_Indicators.class;
       clazz = OrientationIndicatorsPlugin.class;
-      String testImagePath = "C:/_Dev/_Dev_Data/TestImages/testData/PS_Aster/PS_03_0825_1753_24.tif";
-      testAsImageJPlugin(clazz, testImagePath);
+      testAsImageJPlugin(clazz);
       JFrame runPluginFrame = new QuickFrame("IJPluginTest");
       JButton runButton = new JButton("Re-run Plugin");
       runButton.addActionListener(new ActionListener() {

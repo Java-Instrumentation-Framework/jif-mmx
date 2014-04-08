@@ -1,4 +1,3 @@
-
 package edu.mbl.jif.ps.orient;
 
 import ij.IJ;
@@ -12,16 +11,18 @@ import ij.plugin.filter.Analyzer;
 import ij.plugin.frame.Recorder;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
-import ij.process.ImageStatistics; 
+import ij.process.ImageStatistics;
 import ij.util.Tools;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 /**
  *
  * @author GBH
  */
 public class OrientationAnalyzer {
-   
+
    private ImagePlus imp1;
    private boolean appendResults;
    private boolean onePerSlice;
@@ -30,16 +31,20 @@ public class OrientationAnalyzer {
    public OrientationAnalyzer(ImagePlus imp1) {
       this.imp1 = imp1;
    }
-   
+
    //
    // ROI Measurements =================================================================
    //
-   private void measureFromRois() {
-      if (RoiManager.getInstance() != null) { 
+   public void measureFromRois() {
+      if (RoiManager.getInstance() != null) {
          // get Rois from RoiManager
          Roi[] rois = RoiManager.getInstance().getSelectedRoisAsArray();
-         doMeasurements(rois);
-      } else { 
+        
+         if (rois != null && rois.length > 0) {
+            //String roiName = RoiManager.getInstance().getName(RoiManager.getInstance().getRoiIndex(roi));
+            doMeasurements(rois);
+         }
+      } else {
          // get Roi from the ImagePlus
          Roi roi = imp1.getRoi();
          if (roi != null) {
@@ -48,25 +53,56 @@ public class OrientationAnalyzer {
       }
    }
 
-   private void measureFromRoi(Roi roi) {
-      if(roi.getClass().isAssignableFrom(ShapeRoi.class)) {
-         System.out.println("Roi is a shape.");
-      }
-      //roi.getMask()
-   }
-
+   
    private void doMeasurements(Roi[] rois) {
-      // get Roi(s)
+      // get Roi(s) 
       for (Roi roi : rois) {
          System.out.println(roi);
          ImageProcessor ip = imp1.getProcessor();
          ip.setRoi(roi);
-
          // create AveragedArea
+         
          // measure the roi area
          ImageStatistics stats = ImageStatistics.getStatistics(ip, Measurements.AREA
                  + Measurements.CENTROID, null);
-
+         Point2D roiCenter = new Point2D.Double(stats.xCentroid, stats.yCentroid);
+         double area = stats.area;
+         //??? roi.isArea();
+         
+         ImageProcessor mask = roi!=null?roi.getMask():null;
+			Rectangle bounds = roi!=null?roi.getBounds():new Rectangle(0,0,ip.getWidth(),ip.getHeight());
+         // count the enclosed pixels
+			int numPixels = 0;
+			for (int y=0; y<bounds.height; y++) {
+				for (int x=0; x<bounds.width; x++) {
+					if (mask==null||mask.getPixel(x,y)!=0) {
+						numPixels++;
+               }
+				}
+			}
+         IJ.log("numPixels: "+numPixels);
+         float[] orientCell = new float[numPixels];
+         float[] anisoptropyCell = new float[numPixels];
+         float[] intensityCell = new float[numPixels];
+         
+			//
+			
+			double sum = 0;
+         int count = 0;
+			for (int y=0; y<bounds.height; y++) {
+				for (int x=0; x<bounds.width; x++) {
+					if (mask==null||mask.getPixel(x,y)!=0) {
+//						count++;
+//                  orientCell[count] = 
+//                  anisoptropyCell[count] =
+//                  intensityCell[count] =
+//						sum += ip.getPixelValue(x+bounds.x, y+bounds.y);
+					}
+				}
+			}
+			IJ.log("count: "+count);
+			IJ.log("mean: "+IJ.d2s(sum/count,4));
+         
          // OrientationStatistics.
          // 
          // find the Centroid point for the indicator
@@ -74,9 +110,18 @@ public class OrientationAnalyzer {
       }
 
    }
+   
+   
+   private void measureFromRoi(Roi roi) {
+      if (roi.getClass().isAssignableFrom(ShapeRoi.class)) {
+         System.out.println("Roi is a shape.");
+      }
+      //roi.getMask()
+   }
+
+   
 
    // modeled on RoiManager.measure(mode)
-   
    boolean measureWithRoiManager(int mode) {
       if (imp1 == null) {
          return false;
@@ -100,7 +145,7 @@ public class OrientationAnalyzer {
             allSliceOne = false;
          }
       }
-		//int measurements = Analyzer.getMeasurements();
+      //int measurements = Analyzer.getMeasurements();
       //if (imp1.getStackSize()>1)
       //  Analyzer.setMeasurements(measurements|Measurements.SLICE);
       int currentSlice = imp1.getCurrentSlice();
@@ -114,7 +159,7 @@ public class OrientationAnalyzer {
          }
       }
       imp1.setSlice(currentSlice);
-		//Analyzer.setMeasurements(measurements);
+      //Analyzer.setMeasurements(measurements);
 //		if (indexes.length>1)
 //			IJ.run("Select None");
       //if (record()) Recorder.record("roiManager", "Measure");
@@ -122,15 +167,15 @@ public class OrientationAnalyzer {
    }
 
    /* This method performs measurements for several ROI's in a stack
-		and arranges the results with one line per slice.  By constast, the 
-		measure() method produces several lines per slice.	The results 
-		from multiMeasure() may be easier to import into a spreadsheet 
-		program for plotting or additional analysis. Based on the multi() 
-		method in Bob Dougherty's Multi_Measure plugin
-		(http://www.optinav.com/Multi-Measure.htm).
-	*/
+    and arranges the results with one line per slice.  By constast, the 
+    measure() method produces several lines per slice.	The results 
+    from multiMeasure() may be easier to import into a spreadsheet 
+    program for plotting or additional analysis. Based on the multi() 
+    method in Bob Dougherty's Multi_Measure plugin
+    (http://www.optinav.com/Multi-Measure.htm).
+    */
    private ij.measure.ResultsTable mmResults;
-   
+
 //	boolean multiMeasure(String cmd) {
 //		ImagePlus imp = getImage();
 //		if (imp==null) return false;
@@ -233,6 +278,8 @@ public class OrientationAnalyzer {
 //			IJ.run("Select None");
 //		return true;
 //	}
+   
+   //=====================================================================================
    /**
     * Returns the slice number associated with the specified name, or -1 if the name does not
     * include a slice number.
@@ -320,7 +367,7 @@ public class OrientationAnalyzer {
          imp.setRoi(roi2, false);
          noUpdateMode = false;
       } else {
-         imp.setRoi(roi2, true); 
+         imp.setRoi(roi2, true);
       }
       return true;
    }
@@ -332,27 +379,27 @@ public class OrientationAnalyzer {
    //
 
    /*
-   From Wayne...
-   It is easy to add custom measurements to the Results table. This example macro opens the Blobs sample image, creates a selection, measures the area, mean, centroid and perimeter, and then calculates the perimeter mean and adds it to the same row of the Results table as "PMean". This macro has a keyboard shortcut so you can run it by typing "1".
+    From Wayne...
+    It is easy to add custom measurements to the Results table. This example macro opens the Blobs sample image, creates a selection, measures the area, mean, centroid and perimeter, and then calculates the perimeter mean and adds it to the same row of the Results table as "PMean". This macro has a keyboard shortcut so you can run it by typing "1".
 
-  macro "Measure Boundary Mean [1]" {
-     saveSettings;
-     run("Blobs (25K)");
-     setAutoThreshold("Default");
-     doWand(114, 82);
-     run("Interpolate", "interval=1 smooth");
-     resetThreshold();
-     run("To Selection");
-     run("Set Measurements...", "area mean centroid perimeter");
-     run("Measure");
-     getSelectionCoordinates(x, y);
-     n = x.length;
-     sum = 0;
-     for (i=0; i<n; i++)
-        sum += getPixel(x[i], y[i]);
-     mean = sum/n;
-     setResult("PMean", nResults-1, mean);
-     restoreSettings;
-  }
-   */
+    macro "Measure Boundary Mean [1]" {
+    saveSettings;
+    run("Blobs (25K)");
+    setAutoThreshold("Default");
+    doWand(114, 82);
+    run("Interpolate", "interval=1 smooth");
+    resetThreshold();
+    run("To Selection");
+    run("Set Measurements...", "area mean centroid perimeter");
+    run("Measure");
+    getSelectionCoordinates(x, y);
+    n = x.length;
+    sum = 0;
+    for (i=0; i<n; i++)
+    sum += getPixel(x[i], y[i]);
+    mean = sum/n;
+    setResult("PMean", nResults-1, mean);
+    restoreSettings;
+    }
+    */
 }

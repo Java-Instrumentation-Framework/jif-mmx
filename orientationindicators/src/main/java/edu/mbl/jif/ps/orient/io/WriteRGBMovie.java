@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package edu.mbl.jif.ps.orient;
+package edu.mbl.jif.ps.orient.io;
 /*
  * #%L
  * OME Bio-Formats package for reading and converting biological file formats.

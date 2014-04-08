@@ -1,11 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.mbl.jif.ps.orient;
 
-//import edu.mbl.jif.gui.imaging.zoom.core.ZoomGraphics;
-import edu.mbl.jif.utils.EntityInspector;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
@@ -15,7 +9,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- *
+ * Creates indicators for overlaying on PolStacks...
  * @author GBH
  */
 public class OrientationIndicators {
@@ -25,10 +19,10 @@ public class OrientationIndicators {
       FAN, ELLIPSE, LINE
    }
 
-   public Shape createFanAt(float x, float y, float angle, float lengthIn, float dAngle) {
+   public Shape createFanAt(float x, float y, float angle, float lengthIn, float var) {
       float overlap = 0f;
-      float dAngleDeg = (float) (dAngle * 360 / Math.PI * 2);
-      float length = lengthIn * (1-dAngle);
+      float dAngleDeg = (float) (var * 360 / Math.PI * 2);
+      float length = lengthIn * (1-var);
       Arc2D.Float arc1 = createArcAt(-overlap, 0, length + overlap, -dAngleDeg / 2, dAngleDeg);
       Arc2D.Float arc2 = createArcAt(overlap, 0, length + overlap, 180f - dAngleDeg / 2, dAngleDeg);
       Area fanArea = new Area(arc1);
@@ -43,19 +37,19 @@ public class OrientationIndicators {
    }
    // TODO: if dAngle too small, it disappears... use a line instead.
 
-   private Arc2D.Float createArcAt(float x, float y, float r, float angle0, float angle1) {
+   private Arc2D.Float createArcAt(float x, float y, float r, float angle0, float var) {
       //float d = (float) (r / Math.sqrt(2));
       float d = r / 2;
       float x0 = x - d;
       float y0 = y - d;
       float w = 2 * d;
-      return new Arc2D.Float(x0, y0, w, w, angle0, angle1, Arc2D.PIE);
+      return new Arc2D.Float(x0, y0, w, w, angle0, var, Arc2D.PIE);
    }
 
    // Ellipse ===================================================================
-   public Shape createEllipseAt(float x, float y, float angle, float lengthIn, float dAngle) {
-      float eccentricity = dAngle;
-      float length = lengthIn * (1-dAngle);
+   public Shape createEllipseAt(float x, float y, float angle, float lengthIn, float var) {
+      float eccentricity = var;
+      float length = lengthIn * (1-var);
       Ellipse2D.Float ellipse = new Ellipse2D.Float(
               0 - length, -length * eccentricity,
               length, length * eccentricity);
@@ -71,8 +65,8 @@ public class OrientationIndicators {
       return xlated;
    }
 
-   public Shape createLinePointAt(float x, float y, float angle, float length, float dAngle) {
-      Shape line = createLineAt(x, y, angle, length, dAngle);
+   public Shape createLinePointAt(float x, float y, float angle, float length, float var) {
+      Shape line = createLineAt(x, y, angle, length, var);
       Area lineArea = new Area(line);
       // create point/circle
       Shape point = null;
@@ -81,7 +75,7 @@ public class OrientationIndicators {
       return lineArea;
    }
 
-   public Shape createLineAt(float x, float y, float angle, float length, float dAngle) {
+   public Shape createLineAt(float x, float y, float angle, float length, float var) {
       float dX = (float) (length * Math.cos(angle) / 2) + 0.0001f;
       float dY = (float) (length * Math.sin(angle) / 2) + 0.0001f;
       Line2D.Float line = new Line2D.Float(x + dX, y - dY, x - dX, y + dY);
@@ -94,13 +88,13 @@ public class OrientationIndicators {
 
    //=======================================================================================
    // Shape xforms...
-   public static Shape rotateShape(final Shape base, final float angle,
+   public static Shape rotateShape(final Shape base, final float var,
            final float x, final float y) {
       if (base == null) {
          return null;
       }
       //float angle = angleDeg * (float) Math.PI / 180;
-      final AffineTransform rotate = AffineTransform.getRotateInstance(angle, x, y);
+      final AffineTransform rotate = AffineTransform.getRotateInstance(var, x, y);
       final Shape result = rotate.createTransformedShape(base);
       return result;
    }

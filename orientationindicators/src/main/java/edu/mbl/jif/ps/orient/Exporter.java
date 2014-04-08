@@ -130,7 +130,7 @@ public class Exporter {
             datafile.open(new File(dataFileName));
             List<String> headers = Arrays.asList(
                     "c", "z", "t",
-                    "x", "y", "anisotropy", "orientation", "orientStd", "intensity");
+                    "x", "y", "anisotropy", "orientation", "intensity");
             datafile.setHeaderList(headers);
             DataRow row = datafile.next();
             for (String head : headers) {
@@ -194,7 +194,7 @@ public class Exporter {
             }
 
          });
-      } else { // only current slice
+      } else { // export only the current slice
          BufferedImage outImg = canvasToImage(cnvs);
          if (roi != null) {
             outImg = outImg.getSubimage(xOut, yOut, wOut, hOut);
@@ -227,9 +227,9 @@ public class Exporter {
    private void exportData(int currentChannel, int slice, int frame) {
       try {
          Vector<AveragedArea> roiAreas = getAverageAreasInsideRoi();
-         System.out.println("\nAreas within Roi (" + roiAreas.size() + "):");
+         //System.out.println("\nAreas within Roi (" + roiAreas.size() + "):");
          for (AveragedArea averagedArea : roiAreas) {
-            System.out.println(averagedArea.toString());
+            //System.out.println(averagedArea.toString());
             DataRow row = datafile.next();
             row.add(currentChannel);
             row.add(slice);
@@ -238,7 +238,6 @@ public class Exporter {
             row.add(averagedArea.y);
             row.add(averagedArea.anisotropy);
             row.add(averagedArea.orientation);
-            row.add(averagedArea.orientationStd);
             row.add(averagedArea.intensity);
          }
       } catch (IOException ex) {

@@ -71,12 +71,12 @@ public class IndicatorTest
       //Composite originalComposite = g.getComposite();
 
       // setHSBA(g, hue,sat,bri,alpha);
-      graphics.setColor(new Color(0f, .7f, .5f, .7f));
-      generateTestGrid(g, OrientationIndicators.Type.ELLIPSE);
-//      graphics.setColor(new Color(.5f, .7f, .5f, .5f));
-//      generateTestGrid(g, OrientationIndicators.Type.FAN);
-      graphics.setColor(new Color(.9f, .7f, 1f, 1f));
-      generateTestGrid(g, OrientationIndicators.Type.LINE);
+//      graphics.setColor(new Color(0f, .7f, .5f, .7f));
+//      generateTestGrid(g, OrientationIndicators.Type.ELLIPSE);
+      graphics.setColor(new Color(.5f, .7f, .5f, .5f));
+      generateTestGrid(g, OrientationIndicators.Type.FAN);
+//      graphics.setColor(new Color(.9f, .7f, 1f, 1f));
+//      generateTestGrid(g, OrientationIndicators.Type.LINE);
    }
 
    public void setHSBA(Graphics2D g, float h, float s, float b, float alpha) {

@@ -22,6 +22,8 @@ public class PolScope {
    private static final String PROCCEIL_OLD = "~ Process Ceiling";
    private static final String PROCCEIL_OLD_F = "~ Fluorescence Ceiling (nm)";
    private static final String PROCCEIL_OLD_D = "~ Dichroism Ceiling (nm)";
+   
+   // todo Add process "
 
    public enum Type {
       birefringence, diattenuation, fluorescence

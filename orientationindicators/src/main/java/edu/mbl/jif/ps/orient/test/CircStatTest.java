@@ -29,14 +29,14 @@ public class CircStatTest
       //pts = generateGridCoordList(1, 1, increment);
       //og = new OrientationIndicators();
 
-
       //dumpData(result);
       //repaint();
       //(new Thread(this)).start();
    }
 
    public static float[][] makeDataAngles() {
-      float[] angles = new float[]{0, (float)Math.PI/4, (float)Math.PI/2, (float)Math.PI*3/4};
+      float[] angles = new float[]{0, (float) Math.PI / 4, (float) Math.PI / 2, (float) Math.PI * 3
+         / 4};
       float[][] result = new float[256][4];
       int n = 0;
       for (int i = 0; i < 4; i++) {
@@ -168,9 +168,9 @@ public class CircStatTest
             System.out.println("= " + x + ", " + y);
          }
       }
-
       return pts;
    }
+   
    /* [0,0,0,0]
     /* [45,0,0,0]
     /* [90,0,0,0]
@@ -193,7 +193,10 @@ public class CircStatTest
 
    public static void main(String[] args) {
 
-      test2(null);
+      //test2(null);
+      
+      test3();
+      
 //      JFrame f = new JFrame("Glyph Test");
 //      CircStatTest clock = new CircStatTest(1200, 800);
 //      f.getContentPane().add(clock);
@@ -217,13 +220,13 @@ public class CircStatTest
 //      ArrayList<float[]> testSetAnisotropy = new ArrayList<float[]>();
 //      ArrayList<float[]> testSetIntensity = new ArrayList<float[]>();
       //
-      float[] intensity0 = new float[]{1, 1, 1,1};
+      float[] intensity0 = new float[]{1, 1, 1, 1};
       float[] anglesDeg = new float[4];
       //float[] anisotropy= new float[4];
-      float[] anisotropy= new float[]{1, 1, 1,1};
-      
+      float[] anisotropy = new float[]{1, 1, 1, 1};
+
       List results = new ArrayList<Object[]>();
-      
+
       for (int i = 0; i < 100; i++) {
          for (int j = 0; j < 4; j++) {
             anglesDeg[j] = orients[i][j];
@@ -231,27 +234,28 @@ public class CircStatTest
          }
          float[] circStat = cs.process(anglesDeg, anisotropy, intensity0);
          cs.test("", anglesDeg, anisotropy, intensity0);
-         
-                 
-        DecimalFormat df2 = new DecimalFormat("#.00");
-        DecimalFormat df3 = new DecimalFormat("#.000");
-        String angleMean = df2.format(circStat[1]* 180 / Math.PI);
-        String rMean = df3.format(circStat[0]);
-        String std = df3.format(circStat[2]);
-        
-         results.add(new Object[]{Arrays.toString(anglesDeg), Arrays.toString(anisotropy),
-            rMean,angleMean, std
-         });
-         
+
+         DecimalFormat df2 = new DecimalFormat("#.00");
+         DecimalFormat df3 = new DecimalFormat("#.000");
+         String angleMean = df2.format(circStat[1] * 180 / Math.PI);
+         String rMean = df3.format(circStat[0]);
+         String iMean = df3.format(circStat[0]);
+         String std = df3.format(circStat[2]);
+
+         results.add(
+                 new Object[]{Arrays.toString(anglesDeg), Arrays.toString(anisotropy), Arrays.toString(
+                            intensity0),
+                    rMean, iMean, angleMean, std
+                 });
+
       }
       // Show results in table
-      String[] colHeaders = new String[]{"#","Angles", "Anisotropies", "meanR", "meanAngle", "Std"};
+      String[] colHeaders = new String[]{
+         "#", "Angles", "Anisotropies", "Intensities", "meanR", "meanI", "meanAngle", "Std"};
       MathUtils.displayListOfArraysAsTableFrame("Results", colHeaders, results);
    }
-   
-   
 
-   public static void test1(String[] args) {
+   public static void test1() {
       CircularStatistics cs = new CircularStatistics();
       ArrayList<float[]> testSetAngles = new ArrayList<float[]>();
       ArrayList<float[]> testSetAnisotropy = new ArrayList<float[]>();
@@ -330,4 +334,175 @@ public class CircStatTest
     opo, 1:  meanR= 4.371139E-8  meanTheta= 135.00000398439022  Std= 1.0
 
     */
+//==================================================================================
+   public static void test3() {
+      ///////////////////////
+      // case 1: All angles are isotropic, but last one is 12 deg
+      float[] orientation = new float[]{
+         0,
+         45,
+         90,
+         135,
+         0,
+         90,
+         45,
+         135,
+         0,
+         90,
+         135,
+         45,
+         12};
+
+      float[] anisotropy = new float[]{
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1};
+
+      float[] intensity = new float[]{
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1};
+
+      compute(orientation, anisotropy, intensity);
+
+      // Results:
+      // mean Angle	12
+      // Anisotropy	0.076923077
+      // var   	0.923076923
+
+      ///////////////////////
+      // case 2: All angles are isotropic, but anisotropy at 45 degrees dominates
+      orientation = new float[]{
+         0,
+         45,
+         90,
+         135,
+         0,
+         90,
+         45,
+         135,
+         0,
+         90,
+         135,
+         45,
+         0};
+
+      anisotropy = new float[]{
+         0.5f,
+         1,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         1,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         1,
+         0};
+
+      // mean Angle	45
+      // Anisotropy	0.115384615
+      // var	0.884615385
+      compute(orientation, anisotropy, intensity);
+      ///////////////////////
+      // case 3: Spread of 1 degree around 31.5 degress, anisotropy 0.5
+      orientation = new float[]{
+         31,
+         31.16666667f,
+         31.25f,
+         31.33333333f,
+         31.41666667f,
+         31.5f,
+         31.58333333f,
+         31.66666667f,
+         31.75f,
+         31.83333333f,
+         31.91666667f,
+         32,
+         0};
+
+      anisotropy = new float[]{
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0.5f,
+         0};
+
+      // Results:
+      // mean Angle	31.5347229 
+      // Anisotropy	0.461513253
+      // var	0.538486747        
+      
+      
+      compute(orientation, anisotropy, intensity);
+      
+      showResults();
+   }
+   
+  static List results = new ArrayList<Object[]>();
+
+   private static void compute(float[] orientation, float[] anisotropy, float[] intensity) {
+      CircularStatistics cs = new CircularStatistics();
+      for (int i = 0; i < orientation.length; i++) {
+         orientation[i] = orientation[i]*(float)Math.PI/180f;
+      }
+
+      float[] circStat = cs.process(orientation, anisotropy, intensity);
+      cs.test("", orientation, anisotropy, intensity);
+
+      DecimalFormat df2 = new DecimalFormat("#.00");
+      DecimalFormat df3 = new DecimalFormat("#.000");
+      String angleMean = df2.format(circStat[1] * 180 / Math.PI);
+      String rMean = df3.format(circStat[0]);
+      String iMean = df3.format(circStat[0]);
+      
+
+      results.add(
+              new Object[]{
+                 Arrays.toString(orientation),
+                 Arrays.toString(anisotropy),
+                 Arrays.toString(intensity),
+                 rMean, iMean, angleMean
+              });
+      
+   }
+   
+   public static void showResults() {
+      // Show results in table
+      String[] colHeaders = new String[]{
+         "#", "Angles", "Anisotropies", "Intensities", "meanR", "meanI", "meanAngle"};
+      MathUtils.displayListOfArraysAsTableFrame("Results", colHeaders, results);
+   }
+
+
 }

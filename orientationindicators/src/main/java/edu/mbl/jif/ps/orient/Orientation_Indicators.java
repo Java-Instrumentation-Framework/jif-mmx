@@ -47,6 +47,9 @@ import org.json.JSONObject;
 
  TODOs: 
 
+ [ ] FlourPol: What if Mag image is not Anisotropy?!  
+ Test for ~Process = ‘anisotropy’, ‘ratio’, ‘difference’
+
  [ ] On rerun, channel slider moved to 0, but image displayed is last channel
  [ ] Three repaints on initial run
  if orient = 0 or 90, no indicator... when not scaling...
@@ -154,7 +157,14 @@ public class Orientation_Indicators {
 
    private boolean promptForCeiling = false;
    private float displayCeiling;
+   private float lengthGamma = 3f;
    OrientationIndicators.Type indicatorType;
+
+   enum Mode {
+
+      grid, rois;
+   }
+   Mode mode = Mode.grid;
 
 //<editor-fold defaultstate="collapsed" desc="Variables from Prefs">
    //
@@ -175,6 +185,7 @@ public class Orientation_Indicators {
    private static final String key_varyOpacity = "varyOpacity";
    private static final String key_mapAnisotropyToAlpha = "mapAnisotropyToAlpha";
    private static final String key_displayCeiling = "displayCeiling";
+   private static final String key_lengthGamma = "lengthGamma";
 
    //// Variables from Preferences:
    int type;
@@ -200,6 +211,7 @@ public class Orientation_Indicators {
    boolean varyOpacity;
    boolean mapAnisotropyToAlpha;  // Alpha mapped to anisotropy (or intensity)
    private boolean rerun = false;
+   float maxAnisotropy = 0;
 
    public void loadFromPrefs() {
       this.type = (int) Prefs.get(key + key_indicatorType, 0);
@@ -218,6 +230,7 @@ public class Orientation_Indicators {
       varyOpacity = (boolean) Prefs.get(key + key_varyOpacity, false);
       mapAnisotropyToAlpha = (boolean) Prefs.get(key + key_mapAnisotropyToAlpha, false);
       displayCeiling = (float) Prefs.get(key + key_displayCeiling, 1d);
+      lengthGamma = (float) Prefs.get(key + key_displayCeiling, 1d);
    }
 
    private void saveToPref() {
@@ -237,6 +250,7 @@ public class Orientation_Indicators {
       Prefs.set(key + key_varyOpacity, varyOpacity);
       Prefs.set(key + key_mapAnisotropyToAlpha, mapAnisotropyToAlpha);
       Prefs.set(key + key_displayCeiling, displayCeiling);
+      Prefs.set(key + key_lengthGamma, lengthGamma);
       Prefs.savePreferences();
    }
 //</editor-fold>
@@ -306,11 +320,23 @@ public class Orientation_Indicators {
    public void run(ImagePlus imagePlus) {
       this.imp1 = imagePlus;
       loadFromPrefs();
-      if (checkIfPolScopeType(imagePlus)) {
-         run();
+      // Test if it is a MMDataset
+      if (DatasetUtils.isMMDataset(imagePlus)) {
+         if (checkIfPolScopeType(imagePlus)) {
+            run();
+         } else {
+            // It is an MM Dataset, but cannot determine PolScope type
+            IJ.error("Orientation Indicators", "Image/Stack is not a PolStack type");
+         }
       } else {
-         // error("Stack is not an OpenPolScope type")
-         IJ.error("Orientation Indicators", "Image/Stack is not a PolStack type");
+         // Not an MM Dataset, but a hyperstack, perhaps, so prompt...
+         // prompt for type and necessary values
+         // check that number of channels corresponds to type
+         if (showNoMetadataDialog()) {
+            promptForCeiling = true;
+            run();
+         }
+         return;
       }
    }
 
@@ -327,12 +353,12 @@ public class Orientation_Indicators {
          System.out.println("EDT? " + SwingUtilities.isEventDispatchThread());
          canvas.repaint();
          rerun = false;
-//         indicatorsCheckBox.setState(true);
+         // indicatorsCheckBox.setState(true);
          //enable();
       }
    }
 
-//<editor-fold defaultstate="collapsed" desc="Type and Metadata">
+//<editor-fold defaultstate="collapsed" desc="PolScope Type and Metadata">
    public boolean checkIfPolScopeType(ImagePlus imagePlus) {
       try {
          JSONObject sumMD = getSummaryMetadata(imagePlus);
@@ -353,6 +379,7 @@ public class Orientation_Indicators {
             }
          }
       } catch (JSONException ex) {
+         // No PolScope metadata...
          return false;
       }
    }
@@ -384,8 +411,28 @@ public class Orientation_Indicators {
       }
       return displayCeiling;
    }
-//</editor-fold>
 
+   public boolean showNoMetadataDialog() {
+      GenericDialog gd = new GenericDialog("Orientation Indicators");
+      gd.addMessage("No PolScope metadata.\nSelect PolScope type:");
+      gd.addChoice("Indicator: ",
+              new String[]{"Birefringnce", "Flourescence Polarization", "Diattenuation"},
+              "Flourescence Polarization");
+
+      gd.showDialog();
+      if (gd.wasCanceled()) {
+         return false;
+      }
+      String typeStr = gd.getNextChoice();
+      if (typeStr.equalsIgnoreCase("Flourescence Polarization")) {
+         psType = PolScope.Type.fluorescence;
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+//</editor-fold>
    public boolean showDialog() {
       GenericDialog gd = new GenericDialog("Orientation Indicators");
       if (promptForCeiling) {
@@ -412,6 +459,7 @@ public class Orientation_Indicators {
       gd.addCheckbox("Length proporational", ratioLengthChoice);
       gd.addCheckbox("   (use Anisotropy*Intensity)", multiplyForLength);
       // TODO Add option to use R or R*I for proportional length.
+      gd.addNumericField("Gamma: ", lengthGamma, 2, 4, ".");
       gd.addNumericField("Threshold min: ", thresholdMin, 2, 4, "(0... 1)");
       gd.addNumericField("Threshold max: ", thresholdMax, 2, 4, "(0... 1)");
       gd.addMessage("Experimental...");
@@ -465,6 +513,7 @@ public class Orientation_Indicators {
       ratioLengthChoice = gd.getNextBoolean();
       multiplyForLength = gd.getNextBoolean();
       //
+      lengthGamma = (float) gd.getNextNumber();
       thresholdMin = (float) gd.getNextNumber();
       thresholdMax = (float) gd.getNextNumber();
 
@@ -478,7 +527,6 @@ public class Orientation_Indicators {
       varyOpacity = gd.getNextBoolean();
       //dropshadow = gd.getNextBoolean();
       //centerMarkers = gd.getNextBoolean();
-
       //
       saveToPref();
       //}
@@ -499,15 +547,20 @@ public class Orientation_Indicators {
       //Color myColor = getColor(colorStr);
       color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
       canvas.setIndicatorsColor(color);
-      boolean regenerate = setScaling((float) canvas.getMagnification()) || (lastIndex != index)
-              || rerun;
-      System.out.println("regenerate = " + regenerate);
-      if (regenerate) {
-         generateAreasAndIndicators();
+      if (mode == Mode.grid) {
+         boolean regenerate = setScaling((float) canvas.getMagnification()) || (lastIndex != index)
+                 || rerun;
+         System.out.println("regenerate = " + regenerate);
+         if (regenerate) {
+            generateAreasAndIndicators();
+         }
+      }
+      if (mode == Mode.rois) {
+
       }
    }
 
-   // Called from IndicatorCanvas on change of magnification
+   // Called from IndicatorCanvas on change of magnification/scale
    void rescaleIndicators(float magnification) {
       // if cellSize is 1
       boolean regenerate = setScaling((float) canvas.getMagnification());
@@ -582,7 +635,7 @@ public class Orientation_Indicators {
            int cellSize, Type type) {
       areas = new Vector<AveragedArea>();
       CircularStatistics stat = new CircularStatistics();
-
+      maxAnisotropy = 0;
       int w = imp.getWidth();
       int h = imp.getHeight();
 
@@ -606,7 +659,7 @@ public class Orientation_Indicators {
 //         }
 //      }
       // What if interval ==1 ???
-      float maxVariance = 0;
+      
       // for each cell
       for (int m = 0; m < nY; m++) {
          for (int n = 0; n < nX; n++) {
@@ -642,12 +695,12 @@ public class Orientation_Indicators {
                }
                float[] cellAverages = stat.process(orientCell, anisoptropyCell, intensityCell);
                //process returns: [meanR, meanTheta, std, intensity] ??? which std
-               //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
+               //AveragedArea(x, y,  intensity, anisotropy, orientation)
                aa = new AveragedArea(centerX, centerY,
-                       cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
-//               if (maxVariance < cellAverages[2]) {
-//                  maxVariance = cellAverages[2];
-//               }
+                       cellAverages[2], cellAverages[0], cellAverages[1]);
+               if (maxAnisotropy < cellAverages[0]) {
+                  maxAnisotropy = cellAverages[0];
+               }
             } else {
                int offset = m * w + n;
                float i;
@@ -657,7 +710,10 @@ public class Orientation_Indicators {
                   i = (float) intensity[offset];
                }
                aa = new AveragedArea(x0, y0, i,
-                       (float) anisotropy[offset], (float) orient[offset], 0);
+                       (float) anisotropy[offset], (float) orient[offset]);
+               if((float) anisotropy[offset]> maxAnisotropy) {
+                  maxAnisotropy = anisotropy[offset];
+               }
             }
             areas.add(aa);
          }
@@ -766,11 +822,12 @@ public class Orientation_Indicators {
          if (aa.anisotropy >= thresholdMin && aa.anisotropy <= thresholdMax) {
             float adjustedLength;
             if (lengthProportionalToAnisotropy) {
-               if (multiplyForLength) {
-                  adjustedLength = aa.anisotropy * aa.intensity * (float) length;
-               } else {
-                  adjustedLength = aa.anisotropy * (float) length;
-               }
+//               if (multiplyForLength) {
+//                  adjustedLength = (float)Math.pow(aa.anisotropy, lengthGamma) * aa.intensity * (float) length;
+//               } else {
+               adjustedLength = aa.anisotropy/maxAnisotropy * (float) length;
+               //adjustedLength = (float) Math.pow(aa.anisotropy, lengthGamma) * (float) length;
+//               }
             } else {
                adjustedLength = (float) length;
             }
@@ -781,10 +838,9 @@ public class Orientation_Indicators {
                y = y + 0.5f;
             }
             //
-
             Color adjustedColor;
             if (varyOpacity && cellSize > 1) {
-               float thisOpacity = opacity * (1 - aa.orientationStd);
+               float thisOpacity = opacity * (1 - aa.anisotropy);
                if (thisOpacity < 0) {
                   thisOpacity = 0;
                }
@@ -792,31 +848,32 @@ public class Orientation_Indicators {
             } else {
                adjustedColor = color;
             }
+            float variance = (float) Math.pow(1 - aa.anisotropy, lengthGamma);
             // stroke, if indicator
             if (type == Type.LINE) {
                _indicators.add(new Indicator(og.createLineAt(x, y,
-                       aa.orientation, adjustedLength, aa.orientationStd),
+                       aa.orientation, adjustedLength, variance),
                        adjustedColor, null));
             }
             if (type == Type.ELLIPSE) {
                if (cellSize > 1) {
                   _indicators.add(new Indicator(og.createEllipseAt(x, y,
-                          aa.orientation, adjustedLength, aa.orientationStd),
+                          aa.orientation, adjustedLength, variance),
                           adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
-                          aa.orientation, adjustedLength, aa.orientationStd),
+                          aa.orientation, adjustedLength, variance),
                           color, null));
                }
             }
             if (type == Type.FAN) {
                if (cellSize > 1) {
                   _indicators.add(new Indicator(og.createFanAt(x, y,
-                          aa.orientation, adjustedLength, aa.orientationStd),
+                          aa.orientation, adjustedLength, variance),
                           adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
-                          aa.orientation, adjustedLength, aa.orientationStd),
+                          aa.orientation, adjustedLength, variance),
                           color, null));
                }
             }
@@ -830,11 +887,6 @@ public class Orientation_Indicators {
    }
 
    // ==========================
-   Label cursorValueLabel;
-   Label cellSizeLabel;
-   Label ceilingLabel;
-   Checkbox ch;
-
    public void replaceCanvas() {
       // make this the ImageCanvas of the ImagePlus by replacing the window.
       canvas = new IndicatorCanvas(imp1, null, 1, 1, 1);
@@ -852,10 +904,16 @@ public class Orientation_Indicators {
       win.pack();
    }
 
+   // Sub-panel =======================================
+   Label cursorValueLabel;
+   Label cellSizeLabel;
+   Label ceilingLabel;
+   Checkbox ch;
+
    public Panel createSubPanel() {
       Panel p = new Panel();
       p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-      // add readout for anisotropy/orientation values by pixel
+      // add labels for readout of anisotropy/orientation values by pixel
       cursorValueLabel = new Label("(x,y)  AA.A, OO");
       cursorValueLabel.setPreferredSize(new Dimension(190, 24));
       p.add(cursorValueLabel);
@@ -883,7 +941,8 @@ public class Orientation_Indicators {
          }
       });
       p.add(indicatorsCheck);
-      p.add(Box.createHorizontalStrut(5));
+      p.add(Box.createHorizontalStrut(3));
+      // HideImage checkbox
       final JCheckBox hideImageCheck = new JCheckBox("HideImage");
       hideImageCheck.setSelected(false);
       hideImageCheck.addItemListener(new ItemListener() {
@@ -896,27 +955,22 @@ public class Orientation_Indicators {
          }
       });
       p.add(hideImageCheck);
-      p.add(Box.createHorizontalStrut(5));
-      Button testButton = new Button("test");
+      p.add(Box.createHorizontalStrut(3));
+      // Measure ROIs button
+      Button testButton = new Button("ROIs");
       testButton.addActionListener(new ActionListener() {
          @Override
          public void actionPerformed(ActionEvent e) {
             //measureFromRois();
             measureRois();
          }
-
-         private void measureRois() {
-            OrientationAnalyzer oa = new OrientationAnalyzer(imp1);
-         }
-
       });
       p.add(testButton);
-      p.add(Box.createHorizontalStrut(5));
+      p.add(Box.createHorizontalStrut(3));
       // ColorMapping
-//      p.add(new Button("Create Color-mapped stack"));
-//      p.add(Box.createHorizontalStrut(5));
-
-      // ReRun
+      //      p.add(new Button("Create Color-mapped stack"));
+      //      p.add(Box.createHorizontalStrut(5));
+      // ReRun button
       Button reRunButton = new Button("reRun");
       reRunButton.addActionListener(new ActionListener() {
          @Override
@@ -927,8 +981,9 @@ public class Orientation_Indicators {
          }
       });
       p.add(reRunButton);
-      p.add(Box.createHorizontalStrut(5));
-      // Export
+      p.add(Box.createHorizontalStrut(3));
+      //      
+      // Export button
       Button exportButton = new Button("Export");
       exportButton.addActionListener(new ActionListener() {
          @Override
@@ -941,6 +996,11 @@ public class Orientation_Indicators {
       return p;
    }
 
+   private void measureRois() {
+      OrientationAnalyzer oa = new OrientationAnalyzer(imp1);
+      oa.measureFromRois();
+   }
+
    private void showValues() {
       System.out.println(this.toString());
 //      System.out.println("" + interval + "\n" + //indicatorType  + "\n" +
@@ -949,10 +1009,10 @@ public class Orientation_Indicators {
 //              + dropshadow + "\n" + centerMarkers + "\n");
    }
 
+   // Called by IndicatorCanvas on mouse movement
    void cursorMoved(int ox, int oy) {
       // get the aniso & orient values at this pixel
       int offset = oy * width + ox;
-
       if (anisotropy != null && orient != null) {
          if (offset > anisotropy.length) {
             return;
@@ -989,7 +1049,7 @@ public class Orientation_Indicators {
       removeListeners();
    }
    //=================================================================================   
-//<editor-fold defaultstate="collapsed" desc="Dimensional Controller Listening">
+   //<editor-fold defaultstate="collapsed" desc="Dimensional Controller Listening">
    //String UseListener = "Yes";
    private ScrollbarWithLabel cSelectorChannel_ = new ScrollbarWithLabel();
    private ScrollbarWithLabel tSelectorTime_ = new ScrollbarWithLabel();
@@ -1029,6 +1089,21 @@ public class Orientation_Indicators {
 //         removeListeners();
 //      }
    }
+
+   public void addListeners() {
+      // cSelectorChannel_.addAdjustmentListener(adjustmentListener);
+      tSelectorTime_.addAdjustmentListener(adjustmentListener);
+      zSelectorZSlice_.addAdjustmentListener(adjustmentListener);
+      pSelectorPos.addAdjustmentListener(adjustmentListenerPos);
+   }
+
+   public void removeListeners() {
+      // cSelectorChannel_.removeAdjustmentListener(adjustmentListener);
+      tSelectorTime_.removeAdjustmentListener(adjustmentListener);
+      zSelectorZSlice_.removeAdjustmentListener(adjustmentListener);
+      pSelectorPos.removeAdjustmentListener(adjustmentListenerPos);
+   }
+
    AdjustmentListener adjustmentListener = new AdjustmentListener() {
       @Override
       public void adjustmentValueChanged(AdjustmentEvent evt) {
@@ -1047,20 +1122,6 @@ public class Orientation_Indicators {
          //}
       }
    };
-
-   public void addListeners() {
-      // cSelectorChannel_.addAdjustmentListener(adjustmentListener);
-      tSelectorTime_.addAdjustmentListener(adjustmentListener);
-      zSelectorZSlice_.addAdjustmentListener(adjustmentListener);
-      pSelectorPos.addAdjustmentListener(adjustmentListenerPos);
-   }
-
-   public void removeListeners() {
-      // cSelectorChannel_.removeAdjustmentListener(adjustmentListener);
-      tSelectorTime_.removeAdjustmentListener(adjustmentListener);
-      zSelectorZSlice_.removeAdjustmentListener(adjustmentListener);
-      pSelectorPos.removeAdjustmentListener(adjustmentListenerPos);
-   }
 
    public void runViaListener() {
       if (imp1.isVisible()) {
@@ -1112,7 +1173,6 @@ public class Orientation_Indicators {
               + colorStr + ", opacity=" + opacity + ", mapAnisotropyToAlpha=" + mapAnisotropyToAlpha
               + ", color=" + color + '}';
    }
-
 }
 /**
  * Change history

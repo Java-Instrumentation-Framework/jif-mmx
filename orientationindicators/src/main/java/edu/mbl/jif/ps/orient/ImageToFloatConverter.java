@@ -82,38 +82,38 @@ public class ImageToFloatConverter {
    public float[] getArray(ImageStack stack, int length, int index, int offset) {
       byte[] pixB;
       short[] pixS;
-      float[] anisotropy = new float[length];
+      float[] array = new float[length];
       int bitDepth = stack.getBitDepth();
       // TODO Do only the roi or the visible rect., not the whole image, 
       //if ("Yes".equals(ratioLengthChoice)) {
       // get the ratio values of 1st slice in the stack, ratio value is fraction of maximum value (255 or 4095)
 
       if (bitDepth == STR_KEY_8Bit) {
-         pixB = (byte[]) stack.getPixels(1 + index);
+         pixB = (byte[]) stack.getPixels(offset + index);
          for (int j = 0; j < length; j++) {
-            anisotropy[j] = (VALUE8Bit & pixB[j]);
-            anisotropy[j] = anisotropy[j] / INT8BitVALUE;
+            array[j] = (VALUE8Bit & pixB[j]);
+            array[j] = array[j] / INT8BitVALUE;
          }
       } else if (bitDepth == STR_KEY_14Bit) {
-         pixS = (short[]) stack.getPixels(1 + index);
+         pixS = (short[]) stack.getPixels(offset + index);
          for (int j = 0; j < length; j++) {
-            anisotropy[j] = (VALUE14Bit & pixS[j]);
-            anisotropy[j] = anisotropy[j] / INT14BitVALUE;
+            array[j] = (VALUE14Bit & pixS[j]);
+            array[j] = array[j] / INT14BitVALUE;
          }
       } else if (bitDepth == STR_KEY_16Bit) {
-         pixS = (short[]) stack.getPixels(1 + index);
+         pixS = (short[]) stack.getPixels(offset + index);
          for (int j = 0; j < length; j++) {
-            anisotropy[j] = (VALUE16Bit & pixS[j]);
-            anisotropy[j] = anisotropy[j] / INT16BitVALUE;
+            array[j] = (VALUE16Bit & pixS[j]);
+            array[j] = array[j] / INT16BitVALUE;
          }
       } else {
-         pixS = (short[]) stack.getPixels(1 + index);
+         pixS = (short[]) stack.getPixels(offset + index);
          for (int j = 0; j < length; j++) {
-            anisotropy[j] = (VALUE12Bit & pixS[j]);
-            anisotropy[j] = anisotropy[j] / INT12BitVALUE;
+            array[j] = (VALUE12Bit & pixS[j]);
+            array[j] = array[j] / INT12BitVALUE;
          }
       }
-      return anisotropy;
+      return array;
    }
 
    // get the azimuth values of orientation slice in the stack and convert to radians
@@ -123,7 +123,7 @@ public class ImageToFloatConverter {
       float[] orient = new float[length];
       int bitDepth = stack.getBitDepth();
       if (bitDepth == STR_KEY_8Bit) {
-         pixB = (byte[]) stack.getPixels(offset + index);
+         pixB = (byte[]) stack.getPixels(offset + index);  
          for (int j = 0; j < length; j++) {
             orient[j] = (float)Math.PI * (VALUE8Bit & pixB[j]) / FACTORMAX8Bit;
          }

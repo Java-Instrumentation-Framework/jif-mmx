@@ -1,4 +1,4 @@
-package edu.mbl.jif.ps.orient;
+package edu.mbl.jif.ps.orient.io;
 
 import edu.mbl.jif.imaging.dataset.viewer.DatasetHyperstack;
 import ij.io.OpenDialog;
