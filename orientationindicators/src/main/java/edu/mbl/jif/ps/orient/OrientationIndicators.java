@@ -10,6 +10,7 @@ import java.awt.geom.Rectangle2D;
 
 /**
  * Creates indicators for overlaying on PolStacks...
+ *
  * @author GBH
  */
 public class OrientationIndicators {
@@ -22,7 +23,7 @@ public class OrientationIndicators {
    public Shape createFanAt(float x, float y, float angle, float lengthIn, float var) {
       float overlap = 0f;
       float dAngleDeg = (float) (var * 360 / Math.PI * 2);
-      float length = lengthIn * (1-var);
+      float length = lengthIn * (1 - var);
       Arc2D.Float arc1 = createArcAt(-overlap, 0, length + overlap, -dAngleDeg / 2, dAngleDeg);
       Arc2D.Float arc2 = createArcAt(overlap, 0, length + overlap, 180f - dAngleDeg / 2, dAngleDeg);
       Area fanArea = new Area(arc1);
@@ -49,11 +50,11 @@ public class OrientationIndicators {
    // Ellipse ===================================================================
    public Shape createEllipseAt(float x, float y, float angle, float lengthIn, float var) {
       float eccentricity = var;
-      float length = lengthIn * (1-var);
+      float length = lengthIn * (1 - var);
       Ellipse2D.Float ellipse = new Ellipse2D.Float(
               0 - length, -length * eccentricity,
               length, length * eccentricity);
-      
+
 //      Ellipse2D.Float ellipse = new Ellipse2D.Float(
 //              0 - length / 2, -length * eccentricity / 2,
 //              length/2, length * eccentricity/2);
@@ -75,7 +76,19 @@ public class OrientationIndicators {
       return lineArea;
    }
 
+//   public Shape createLineAt(float x, float y, float angle, float length, float var) {
+//      float dX = (float) (length / 2);
+//      //float dY = (float) (length / 2);
+//      Line2D.Float line = new Line2D.Float(-1,0,1,0);
+//      Shape rotatedLine = rotateShape(line, -angle, 0, 0);
+//      Shape xlated = createTranslatedShape(rotatedLine, x, y);
+//      return xlated;
+//   }
+
+
    public Shape createLineAt(float x, float y, float angle, float length, float var) {
+      //float dX = (float) (length * Math.cos(angle) / 2) + 0.0001f;
+      //float dY = (float) (length * Math.sin(angle) / 2) + 0.0001f;
       float dX = (float) (length * Math.cos(angle) / 2) + 0.0001f;
       float dY = (float) (length * Math.sin(angle) / 2) + 0.0001f;
       Line2D.Float line = new Line2D.Float(x + dX, y - dY, x - dX, y + dY);
@@ -85,16 +98,15 @@ public class OrientationIndicators {
 //      }
       return line;
    }
-
    //=======================================================================================
    // Shape xforms...
-   public static Shape rotateShape(final Shape base, final float var,
+   public static Shape rotateShape(final Shape base, final float theta,
            final float x, final float y) {
       if (base == null) {
          return null;
       }
       //float angle = angleDeg * (float) Math.PI / 180;
-      final AffineTransform rotate = AffineTransform.getRotateInstance(var, x, y);
+      final AffineTransform rotate = AffineTransform.getRotateInstance(theta, x, y);
       final Shape result = rotate.createTransformedShape(base);
       return result;
    }

@@ -38,10 +38,10 @@ public class OrientationIndicatorsPlugin implements PlugInFilter {
    public void run(ImageProcessor ip) {
       imagePlus = IJ.getImage();
       // Test if it is a MMDataset
-      if (!DatasetUtils.isMMDataset(imagePlus)) {
-         IJ.showMessage("Error", "Not a Micro-Manager Dataset");
-         return;
-      }
+//      if (!DatasetUtils.isMMDataset(imagePlus)) {
+//         IJ.showMessage("Error", "Not a Micro-Manager Dataset");
+//         return;
+//      }
       new Orientation_Indicators().run(imagePlus);
    }
 

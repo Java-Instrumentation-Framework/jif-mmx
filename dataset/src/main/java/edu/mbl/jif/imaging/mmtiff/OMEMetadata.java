@@ -88,7 +88,8 @@ public class OMEMetadata {
       series_.put(seriesIndex, new Indices());  
       //Last one is samples per pixel
       JSONObject summaryMD = mptStorage_.getSummaryMetadata();
-      MetadataTools.populateMetadata(metadata_, seriesIndex, baseFileName, MultipageTiffWriter.BYTE_ORDER.equals(ByteOrder.LITTLE_ENDIAN),
+      MetadataTools.populateMetadata(metadata_, seriesIndex, baseFileName, 
+              MultipageTiffWriter.BYTE_ORDER.equals(ByteOrder.LITTLE_ENDIAN),
               mptStorage_.slicesFirst() ? "XYZCT" : "XYCZT", "uint" + (MDUtils.isGRAY8(summaryMD) ? "8" : "16"),
               MDUtils.getWidth(summaryMD), MDUtils.getHeight(summaryMD),
               MDUtils.getNumSlices(summaryMD), MDUtils.getNumChannels(summaryMD),

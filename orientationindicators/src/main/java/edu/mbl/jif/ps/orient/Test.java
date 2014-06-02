@@ -27,12 +27,19 @@ public class Test {
    //
    
    
-   public static void loadMollys() {
+   public static void loadMolly1() {
       String rootDir = "C:\\MicroManagerData\\Molly";
       String name = "SM_2013_0814_2012_1_Z_Processed";
       ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
       image.show();
    }
+   public static void loadMolly2() {
+      String rootDir = "C:\\MicroManagerData\\Molly";
+      String name = "SM_2013_0814_2012_1_Z_C2Aniso";
+      ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
+      image.show();
+   }
+
    public static void loadBrainSlice() {
       String rootDir = "C:/MicroManagerData/project/2048x2048";
       String name = "SM_2012_1126_1447_1";
@@ -115,12 +122,26 @@ public class Test {
       ImagePlus image = IJ.openImage(file);
       image.show();
    }
+   public static void loadFP1500() {
+      String file = "C:/micromanagerdata/fluorescencePolStackHyper.tif";
+      ImagePlus image = IJ.openImage(file);
+      image.show();
+   }
+   public static void loadPS_Synth() {
+      String file = "C:/MicroManagerData/PS-Synth/PS_SynthMagn15_2nmSwing_03.tif";
+      ImagePlus image = IJ.openImage(file);
+      image.show();
+   }
+   
+   
       public static void loadOldFluorDataset() {
       String rootDir = "C:/MicroManagerData/Samples/GFP_Crystals/2012_07_11";
       String name = "SM_2012_0711_1749_1";
       ImagePlus image = new DatasetHyperstack(rootDir, name).createImagePlus();
       image.show();
    }
+      
+      
    
    public static void testAsImageJPlugin(Class<?> clazz) {
       String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
@@ -132,9 +153,9 @@ public class Test {
 //      loadDatasetXMT15();
 //      loadDataset2048();
 //      loadIJHyperstack();
- //    loadMDimDataset();
+//      loadMDimDataset();
 //      loadNonPolStack();
-      loadFluorDataset();
+//      loadFluorDataset();
 //      loadDiattenDataset();
 //      loadBirefrDataset();
 //      loadOldFluorDataset();
@@ -142,7 +163,10 @@ public class Test {
 //      loadBlobsFluor();
 //      loadBrainSlice();
 //      loadBirefrMultiDim();
-//      loadMollys();
+//      loadMolly1();
+//      loadMolly2();
+//      loadFP1500();
+      loadPS_Synth();
       // run the plugin
       try {
          Thread.sleep(500);
@@ -196,6 +220,7 @@ public class Test {
       });
       runPluginFrame.add(runButton);
       runPluginFrame.pack();
+      runPluginFrame.setLocation(10,10);
       runPluginFrame.setVisible(true);
    }
       public static class QuickFrame extends JFrame {

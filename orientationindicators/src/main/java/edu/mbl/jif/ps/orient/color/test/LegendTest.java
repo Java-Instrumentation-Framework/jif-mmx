@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package edu.mbl.jif.ps.orient.color.test;
+
 import edu.mbl.jif.ps.orient.color.HuslConverter;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -14,10 +15,10 @@ import javax.swing.SwingUtilities;
 
 class Surface extends JPanel {
 
-    private void doDrawing(Graphics g) {
+   private void doDrawing(Graphics g) {
 
-        Graphics2D g2d = (Graphics2D) g;
-        this.drawLegend(g2d, 100,100, 100);
+      Graphics2D g2d = (Graphics2D) g;
+      this.drawLegend(g2d, 100, 100, 100);
 
 //        g2d.setColor(Color.blue);
 //
@@ -35,9 +36,8 @@ class Surface extends JPanel {
 //            int y = Math.abs(r.nextInt()) % h;
 //            g2d.drawLine(x, y, x, y);
 //        }
-    }
-    
-    
+   }
+
    public void drawLegend(Graphics2D g2, double x0, double y0, double totalR) {
       boolean half = false;
       // half, 180 or full, 360
@@ -45,67 +45,74 @@ class Surface extends JPanel {
       // hue varies with angle
       // sat varies radially
       int radialElements = 100;
-      double rIncr = totalR / (double)radialElements;
+      double rIncr = totalR / (double) radialElements;
+      //
       double satMax = 100;
-      double satIncr = satMax / (double)radialElements;
+      double satIncr = satMax / (double) radialElements;
+      //
+      double litMax = 50;
+      double litIncr = litMax / (double) radialElements;
       //
       int angularElements = 360;
       double angularIncr = Math.PI / angularElements;
+      //
       double hueMax = 360;
-      double hueIncr = hueMax / (double)angularElements;
-      double lit = 50;
+      double hueIncr = hueMax / (double) angularElements;
+      
       //
       for (int r = 0; r < radialElements; r++) {
          double radius = r * rIncr;
-         double sat = r * satIncr;
-         //double sat = 70;
+         double sat = 99;
+         //double sat = r * satIncr;
+         double lit = r * litIncr;
+         
          for (int a = 0; a < angularElements; a++) {
-            double angle = 2* a * angularIncr;
-            double hue = 2* a * hueIncr;
+            double angle = 2 * a * angularIncr;
+            double hue = 2 * a * hueIncr;
             double x = x0 + radius * Math.cos(angle);
             double y = y0 + radius * Math.sin(angle);
             float[] rgb = HuslConverter.convertHuslToRgb((float) hue, (float) sat, (float) lit);
             Color color = new Color(rgb[0], rgb[1], rgb[2]);
             g2.setColor(color);
-            Ellipse2D.Double dot = new Ellipse2D.Double(x,y,2.0,2.0);
+            Ellipse2D.Double dot = new Ellipse2D.Double(x, y, 2.0, 2.0);
             g2.fill(dot);
          }
       }
    }
 
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        doDrawing(g);
-    }
+   @Override
+   public void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      doDrawing(g);
+   }
 }
 
 public class LegendTest extends JFrame {
 
-    public LegendTest() {
+   public LegendTest() {
 
-        initUI();
-    }
+      initUI();
+   }
 
-    private void initUI() {
-        
-        setTitle("Legend Test");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+   private void initUI() {
 
-        add(new Surface());
+      setTitle("Legend Test");
+      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        setSize(350, 250);
-        setLocationRelativeTo(null);
-    }
+      add(new Surface());
 
-    public static void main(String[] args) {
+      setSize(350, 250);
+      setLocationRelativeTo(null);
+   }
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                LegendTest ps = new LegendTest();
-                ps.setVisible(true);
-            }
-        });
-    }
+   public static void main(String[] args) {
+
+      SwingUtilities.invokeLater(new Runnable() {
+         @Override
+         public void run() {
+            LegendTest ps = new LegendTest();
+            ps.setVisible(true);
+         }
+      });
+   }
 }

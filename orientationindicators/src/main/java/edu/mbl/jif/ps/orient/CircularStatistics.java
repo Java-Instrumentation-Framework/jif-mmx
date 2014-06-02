@@ -1,7 +1,7 @@
 package edu.mbl.jif.ps.orient;
 
 /**
- *
+ *  See notes below.
  * @author GBH
  */
 public class CircularStatistics {
@@ -29,14 +29,16 @@ public class CircularStatistics {
       float sumCos = 0;
       float sumSin = 0;
       float sumI = 0;
-      double[] RCos2Angle = new double[n];
-      double[] RSin2Angle = new double[n];
+//      double[] RCos2Angle = new double[n];
+//      double[] RSin2Angle = new double[n];
       for (int i = 0; i < angles.length; i++) {
          sumI += intensity[i];
-         RCos2Angle[i] = anisoptropy[i] * Math.cos(2 * angles[i]);
-         RSin2Angle[i] = anisoptropy[i] * Math.sin(2 * angles[i]);
-         sumCos += RCos2Angle[i];
-         sumSin += RSin2Angle[i];
+         sumCos += anisoptropy[i] * Math.cos(2 * angles[i]);
+         sumSin += anisoptropy[i] * Math.sin(2 * angles[i]);
+//         RCos2Angle[i] = anisoptropy[i] * Math.cos(2 * angles[i]);
+//         RSin2Angle[i] = anisoptropy[i] * Math.sin(2 * angles[i]);
+//         sumCos += RCos2Angle[i];
+//         sumSin += RSin2Angle[i];
       }
 
       // 2theta argument ensure periodicity at 180 degree. Also, pixels with
@@ -53,9 +55,7 @@ public class CircularStatistics {
       float meanI = sumI / n;
       // Mean orientation angle      
       //meanOrient=mod(0.5*atan2(sinMean,cosMean),pi)*(180/pi)
-      double meanTheta = modulo((0.5 * Math.atan2(sinMean, cosMean)), Math.PI);
-      // todo - use fastATan2 here...
-
+      double meanTheta = modulo((0.5 * UtilsMath.atan2(sinMean, cosMean)), Math.PI);
       return new float[]{(float) meanR, (float) meanTheta, (float) meanI};
    }
 
@@ -100,7 +100,29 @@ public class CircularStatistics {
       }
 
    }
+/*
+   Re: Changes in April '14
+   I would make a few statements before describing revised calculations
+in the excel file.
+* The mean of the intensity over ROI is obvious, just mean over the ROI.
+* The relative balance of four intensities (I0, I45, I90, I135) has
+been accounted for and summarized in anisotropy and orientation. When
+computing statistics, we do NOT need to utilize average intensity.
+This was the biggest mistake I made in equations I sent you.
+* The mean orientation and mean anisotropy both are computed from
+average X, Y parameters.
+1. X=Anisotropy*Cos(2*Orientation)
+2. Y=Anisotropy*Sin(2*Orientation)
+3. Mean Orientation= ATAN2( mean(X), mean(Y))
+4. Mean Anisotropy= SQRT(mean(X)^2+mean(Y)^2).
+5. Mean PolRatio= (1+Mean Anisotropy)/(1-Mean Anisotropy).
+6. Overall variance = 1-Mean Anisotropy.
+This may appear counter-intuitive at first sight, how come variance
+and anisotropy are tied? But, if you think about it, if you have large
+spread, you have low anisotropy and therefore high variance.
 
+Note that we cannot substitute Anisotropy by PolRatio in eq. 1 and 2.
+   */
 //      public float[] OLDprocess(float[] angles, float[] anisoptropy, float[] intensity) {
 //      if (!(angles.length == anisoptropy.length
 //              && angles.length == intensity.length

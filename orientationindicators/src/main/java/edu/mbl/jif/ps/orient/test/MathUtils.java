@@ -234,7 +234,7 @@ public class MathUtils {
       return new BufferedImage(ccm, wr, true, ht);
    }
 
-   // Float ==============================================================================
+   // Float ==============================================================================\
    public static ij.ImagePlus createImagePlus(int width, int height, float[] pixels) {
       ij.ImagePlus ip = new ImagePlus("Float", createImage(width, height, pixels));
       return ip;
@@ -244,6 +244,7 @@ public class MathUtils {
       return ip;
    }
 
+   // Image makers...
    public static BufferedImage createImage(int width, int height, float[] pixels) {
       BufferedImage myimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
       for (int x = 0; x < width; x++) {
@@ -305,8 +306,8 @@ public class MathUtils {
          data[i] = max/2 - (float) ((float) i * (float) scale);
       }
       // displayArrayAsTableFrame("dump", data);
-//      displayArrayAsImage("Float data", data, wid, ht);
-     
+      displayArrayAsImage("Float data", data, wid, ht);
+      
       ij.ImagePlus ip = new ImagePlus("Float", createPosNegImage(wid, ht, data));
       ip.show();
    }

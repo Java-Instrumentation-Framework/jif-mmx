@@ -20,6 +20,8 @@ import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -125,7 +127,14 @@ public class Exporter {
             f.getParentFile().mkdir();
          }
          try {
-            datafile = DataFileFactory.createWriter("8859_2", false);
+            String fmtPattern = "###.#####";
+            NumberFormat fmt = NumberFormat.getInstance();
+            if (fmt instanceof DecimalFormat) {
+               ((DecimalFormat) fmt).setDecimalSeparatorAlwaysShown(false);
+               ((DecimalFormat) fmt).applyPattern(fmtPattern);
+            }
+
+            datafile = DataFileFactory.createWriter("8859_2", false, fmt);
             datafile.setDataFormat(new CSVFormat());
             datafile.open(new File(dataFileName));
             List<String> headers = Arrays.asList(

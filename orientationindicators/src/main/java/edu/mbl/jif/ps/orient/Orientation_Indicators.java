@@ -15,9 +15,11 @@ import java.awt.Checkbox;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.Label;
 import java.awt.Panel;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,83 +37,67 @@ import javax.swing.SwingUtilities;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/*
+/**
  * Orientation_Indicators for OpenPolScope data visualization.
- * 
- * Displays orientation indicators on a grid.
- * The grid size can change with the magnification.
-
- Birefringence: Anisotropy(or Magnitude) & Orientation
- FlourPol or Diattenuation: Intensity, Anisotropy, Orientation
- 
-
- TODOs: 
-
- [ ] FlourPol: What if Mag image is not Anisotropy?!  
- Test for ~Process = ‘anisotropy’, ‘ratio’, ‘difference’
-
- [ ] On rerun, channel slider moved to 0, but image displayed is last channel
- [ ] Three repaints on initial run
- if orient = 0 or 90, no indicator... when not scaling...
- [ ] Threshold is fraction of range, not nm.
- // If ratio values of 1st slice in the stack, ratio value is fraction of maximum value (255 or 4095)
- // calc anisotropy from ratio...
-
- Nov 1
- [x] Should no longer need jai tiff installed - 
- added dependency in jif.imaging.tiff for jai_imageio... test this.
-
- [x] length %
-
-
- [ ] Grid size is not the same as the original after zooming in then out
- ! At 25% (after zooming out) grid not happening at Border 
-
- [X] not recomputing on change timepoint...
-
- [?]  add input for ceiling if it is not found in the metadata
-
- [ ] What if applied to an MM VirtualAcqDisplay?
-
- [ ] ++ Only draw in visible area of canvas
- 
- + Change line width with scale
- 
- + Need PolStack metadata... from dataset
- retCeiling is in summary metadata
- 
- + add non-linear variation to: 
- lengthProportionalToAnisotropy
- + non-linear scaleWithMag .. ??
- 
- + On export, save the x0, y0, w, h of the canvas in relation to the full image to the metadata
-  
- [x] Operates on IJ Hyperstack - if there is metadata... 
- 
- [x] Export the scaled image with indicators as RGB
- * + Keep the zoom box on the exported images
- 
- Check imageInfo, "ChNames" for "Retardance"
- If RetardanceCeiling is not in summary metadata, get from FrameMetadata
- 
- Measurement on ROI ...
- Requires copying all of ij/text components, damn it.
- 
- Generalize
- setDataSource - ImagePlus/hyperstack or dataset on disk
- if ImagePlus, replace ImageWindow with IndicatorCanvas
- 
- 
- CircularStatistics:
- [ ] What is the std for R, Theta?
- [ ] What is the average intensity?
-
- /////////////////////////
- [ ] Export to hyperstack... add metadata... but MM sucks, so I can't name the file...
- [ ] Not seeing Ceiling from old data set 
- [x] add .5 to x,y when cell/grid size = [1x1]  
- [x] Doesn't draw 0 or 90 degree lines... add 0.0001 to orient for indicator
- 
+ *
+ * Displays orientation indicators on a grid. The grid size can change with the magnification.
+ *
+ * Birefringence: Anisotropy(or Magnitude) & Orientation FlourPol or Diattenuation: Intensity,
+ * Anisotropy, Orientation
+ *
+ *
+ * TODOs: * [ ] FlourPol: What if Mag image is not Anisotropy?! Test for ~Process = ‘anisotropy’,
+ * ‘ratio’, ‘difference’
+ *
+ * [ ] On rerun, channel slider moved to 0, but image displayed is last channel [ ] Three repaints
+ * on initial run if orient = 0 or 90, no indicator... when not scaling... [ ] Threshold is fraction
+ * of range, not nm. // If ratio values of 1st slice in the stack, ratio value is fraction of
+ * maximum value (255 or 4095) // calc anisotropy from ratio...
+ *
+ * Nov 1 [x] Should no longer need jai tiff installed - added dependency in jif.imaging.tiff for
+ * jai_imageio... test this.
+ *
+ * [x] length %
+ *
+ *
+ * [ ] Grid size is not the same as the original after zooming in then out ! At 25% (after zooming
+ * out) grid not happening at Border * [X] not recomputing on change timepoint...
+ *
+ * [?] add input for ceiling if it is not found in the metadata
+ *
+ * [ ] What if applied to an MM VirtualAcqDisplay?
+ *
+ * [ ] ++ Only draw in visible area of canvas
+ *
+ * + Change line width with scale
+ *
+ * + Need PolStack metadata... from dataset retCeiling is in summary metadata
+ *
+ * + add non-linear variation to: lengthProportionalToAnisotropy + non-linear scaleWithMag .. ??
+ *
+ * + On export, save the x0, y0, w, h of the canvas in relation to the full image to the metadata
+ *
+ * [x] Operates on IJ Hyperstack - if there is metadata... * [x] Export the scaled image with
+ * indicators as RGB + Keep the zoom box on the exported images
+ *
+ * Check imageInfo, "ChNames" for "Retardance" If RetardanceCeiling is not in summary metadata, get
+ * from FrameMetadata
+ *
+ * Measurement on ROI ... Requires copying all of ij/text components, damn it.
+ *
+ * Generalize setDataSource - ImagePlus/hyperstack or dataset on disk if ImagePlus, replace
+ * ImageWindow with IndicatorCanvas
+ *
+ *
+ * CircularStatistics: [ ] What is the std for R, Theta? [ ] What is the average intensity?
+ *
+ * ///////////////////////// [ ] Export to hyperstack... add metadata... but MM sucks, so I can't
+ * name the file... [ ] Not seeing Ceiling from old data set [x] add .5 to x,y when cell/grid size =
+ * [1x1] [x] Doesn't draw 0 or 90 degree lines... add 0.0001 to orient for indicator
+ *
+ * May 2014 [x] changed atan functions to use abbreviated precision (UtilsMath)
+ *
+ * [ ] Performance [ ] repaint strategy [ ] ?? caching of AverageArea array for each z/t.
  */
 public class Orientation_Indicators {
 
@@ -122,21 +108,14 @@ public class Orientation_Indicators {
    public static final URL IconURL = Orientation_Indicators.class.getResource(IconLocation);
    public static final Image ImageIcon = Toolkit.getDefaultToolkit().createImage(IconURL);
    //
-   // 
-//      public static String azimPrefs = "xinterval=10 yinterval=10 indicatorwidth=1 indicatorlength=1 "
-//           + "lengthpropratio=No color=Red xoffset=0 yoffset=0 draw_outindicator=No use_listener=Yes";
-
-   //private ImagePlus imagePlus;
    private int width;
    private int height;
    private IndicatorCanvas canvas;
    private float circleWidth;
-   //
    // Controls...
    Checkbox indicatorsCheckBox;
-   //String EnableIndicators = "Yes";
    int lastIndex = -1; //?
-
+   //
    ImagePlus imp1;
    private ImageWindow frame;
    //boolean isRunningOnIjStack = false;
@@ -186,6 +165,7 @@ public class Orientation_Indicators {
    private static final String key_mapAnisotropyToAlpha = "mapAnisotropyToAlpha";
    private static final String key_displayCeiling = "displayCeiling";
    private static final String key_lengthGamma = "lengthGamma";
+   private static final String key_wholeImageCalc = "wholeImageCalc";
 
    //// Variables from Preferences:
    int type;
@@ -211,7 +191,8 @@ public class Orientation_Indicators {
    boolean varyOpacity;
    boolean mapAnisotropyToAlpha;  // Alpha mapped to anisotropy (or intensity)
    private boolean rerun = false;
-   float maxAnisotropy = 0;
+   //float maxAnisotropy = 0;
+   boolean wholeImageCalc = true;
 
    public void loadFromPrefs() {
       this.type = (int) Prefs.get(key + key_indicatorType, 0);
@@ -227,10 +208,12 @@ public class Orientation_Indicators {
       centerMarkers = Prefs.get(key + key_centerMarkers, false);
       colorStr = Prefs.get(key + key_color, "Red");
       opacity = (float) Prefs.get(key + key_indicatorOpacity, 1f);
-      varyOpacity = (boolean) Prefs.get(key + key_varyOpacity, false);
+      varyOpacity = false; //(boolean) Prefs.get(key + key_varyOpacity, false);
       mapAnisotropyToAlpha = (boolean) Prefs.get(key + key_mapAnisotropyToAlpha, false);
       displayCeiling = (float) Prefs.get(key + key_displayCeiling, 1d);
       lengthGamma = (float) Prefs.get(key + key_displayCeiling, 1d);
+      indicatorLength = (float) Prefs.get(key + key_indicatorLength, 16);
+      wholeImageCalc = (boolean) Prefs.get(key + key_wholeImageCalc, true);
    }
 
    private void saveToPref() {
@@ -251,6 +234,7 @@ public class Orientation_Indicators {
       Prefs.set(key + key_mapAnisotropyToAlpha, mapAnisotropyToAlpha);
       Prefs.set(key + key_displayCeiling, displayCeiling);
       Prefs.set(key + key_lengthGamma, lengthGamma);
+      Prefs.set(key + key_wholeImageCalc, wholeImageCalc);
       Prefs.savePreferences();
    }
 //</editor-fold>
@@ -303,7 +287,7 @@ public class Orientation_Indicators {
    }
 //</editor-fold>
 
-   // ImageJ Plugin... 
+// When called as an ImageJ Plugin...
 //   @Override  // Plugin
 //   public int setup(String arg, ImagePlus imp) {
 //      // TODO - test type... stack or hyperstack?
@@ -416,7 +400,7 @@ public class Orientation_Indicators {
       GenericDialog gd = new GenericDialog("Orientation Indicators");
       gd.addMessage("No PolScope metadata.\nSelect PolScope type:");
       gd.addChoice("Indicator: ",
-              new String[]{"Birefringnce", "Flourescence Polarization", "Diattenuation"},
+              new String[]{"Birefringence", "Flourescence Polarization", "Diattenuation"},
               "Flourescence Polarization");
 
       gd.showDialog();
@@ -427,6 +411,12 @@ public class Orientation_Indicators {
       if (typeStr.equalsIgnoreCase("Flourescence Polarization")) {
          psType = PolScope.Type.fluorescence;
          return true;
+      } else if (typeStr.equalsIgnoreCase("Birefringence")) {
+         psType = PolScope.Type.birefringence;
+         return true;
+      } else if (typeStr.equalsIgnoreCase("Diattenuation")) {
+         psType = PolScope.Type.diattenuation;
+         return true;
       } else {
          return false;
       }
@@ -434,13 +424,16 @@ public class Orientation_Indicators {
 
 //</editor-fold>
    public boolean showDialog() {
+      Font boldFont = new Font("SansSerif", Font.BOLD, 12);
       GenericDialog gd = new GenericDialog("Orientation Indicators");
       if (promptForCeiling) {
-         gd.addNumericField(displayCeilingPrompt, displayCeiling, 0, 8, displayCeilingUnits);
+         gd.addNumericField(displayCeilingPrompt, displayCeiling, 0, 5, displayCeilingUnits);
       }
-      gd.addNumericField("Interval (at 100%): ", interval, 0, 4, "pixels");
+      gd.addMessage("Averaging Interval", boldFont);
+      gd.addNumericField("Size (at 100%): ", interval, 0, 4, "pixels");
       gd.addCheckbox("Scale interval with zoom", scaleWithMag);
       //
+      gd.addMessage("Orientation Indicators", boldFont);
       String typeDefault = "Line";
       if (type == 0) {
          typeDefault = "Line";
@@ -449,21 +442,23 @@ public class Orientation_Indicators {
       } else if (type == 2) {
          typeDefault = "Fan";
       }
-      gd.addChoice("Indicator: ", new String[]{"Line", "Ellipse", "Fan"}, typeDefault);
+      gd.addChoice("Type: ", new String[]{"Line", "Ellipse", "Fan"}, typeDefault);
       //
-      gd.addChoice("Color: ", colors, colorStr);
-      gd.addNumericField("Opacity: ", opacity, 2, 4, "(0... 1)");
-
       gd.addNumericField("Width: ", indicatorWidth, 1, 4, "pixels");
       gd.addNumericField("Length: ", indicatorLength * 100, 0, 3, "% of interval");
       gd.addCheckbox("Length proporational", ratioLengthChoice);
       gd.addCheckbox("   (use Anisotropy*Intensity)", multiplyForLength);
+      gd.addChoice("Color: ", colors, colorStr);
+      gd.addNumericField("Opacity: ", opacity, 2, 4, "(0... 1)");
+
       // TODO Add option to use R or R*I for proportional length.
-      gd.addNumericField("Gamma: ", lengthGamma, 2, 4, ".");
+      // gd.addNumericField("Gamma: ", lengthGamma, 2, 4, ".");
+      gd.addMessage("Threshold", boldFont);
       gd.addNumericField("Threshold min: ", thresholdMin, 2, 4, "(0... 1)");
       gd.addNumericField("Threshold max: ", thresholdMax, 2, 4, "(0... 1)");
-      gd.addMessage("Experimental...");
-      gd.addCheckbox("Change opacity with variance", varyOpacity);
+      gd.addMessage("Options");
+      //gd.addCheckbox("Change opacity with variance", varyOpacity);
+      gd.addCheckbox("Whole image calculation", wholeImageCalc);
       //gd.addCheckbox("Dropshadow", dropshadow);
       //gd.addCheckbox("Show_Center", centerMarkers);
 
@@ -492,15 +487,7 @@ public class Orientation_Indicators {
          indicatorType = OrientationIndicators.Type.FAN;
          type = 2;
       }
-      //
-      colorStr = gd.getNextChoice();
-      opacity = (float) gd.getNextNumber();
-      if (opacity > 1) {
-         opacity = 1;
-      }
-      baseColor = getColor(colorStr);
-      color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
-      //
+
       indicatorWidth = (float) gd.getNextNumber();
       indicatorLength = (float) gd.getNextNumber();
       indicatorLength = indicatorLength / 100;
@@ -513,10 +500,19 @@ public class Orientation_Indicators {
       ratioLengthChoice = gd.getNextBoolean();
       multiplyForLength = gd.getNextBoolean();
       //
-      lengthGamma = (float) gd.getNextNumber();
+      colorStr = gd.getNextChoice();
+      opacity = (float) gd.getNextNumber();
+      if (opacity > 1) {
+         opacity = 1;
+      }
+      if (opacity < 0) {
+         opacity = 0.1f;
+      }
+      baseColor = getColor(colorStr);
+      color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
+      // lengthGamma = (float) gd.getNextNumber();
       thresholdMin = (float) gd.getNextNumber();
       thresholdMax = (float) gd.getNextNumber();
-
       if (thresholdMin < 0) {
          thresholdMin = 0;
       }
@@ -524,7 +520,8 @@ public class Orientation_Indicators {
          thresholdMax = 1;
       }
       // Experimental...
-      varyOpacity = gd.getNextBoolean();
+      // varyOpacity = gd.getNextBoolean();
+      wholeImageCalc = gd.getNextBoolean();
       //dropshadow = gd.getNextBoolean();
       //centerMarkers = gd.getNextBoolean();
       //
@@ -548,23 +545,23 @@ public class Orientation_Indicators {
       color = colorHSBA(hueFromColor(baseColor), 1f, 1f, opacity);
       canvas.setIndicatorsColor(color);
       if (mode == Mode.grid) {
-         boolean regenerate = setScaling((float) canvas.getMagnification()) || (lastIndex != index)
-                 || rerun;
-         System.out.println("regenerate = " + regenerate);
+         boolean regenerate
+                 = scaleInterval((float) canvas.getMagnification()) || (lastIndex != index) || rerun;
+         // System.out.println("regenerate = " + regenerate);
          if (regenerate) {
             generateAreasAndIndicators();
          }
       }
       if (mode == Mode.rois) {
-
+         // TODO - measure roi(s) using RoiManager
       }
    }
 
    // Called from IndicatorCanvas on change of magnification/scale
    void rescaleIndicators(float magnification) {
       // if cellSize is 1
-      boolean regenerate = setScaling((float) canvas.getMagnification());
-      System.out.println("regenerate = " + regenerate);
+      boolean regenerate = scaleInterval((float) canvas.getMagnification());
+      // System.out.println("regenerate = " + regenerate);
       if (regenerate) {
          if (orient != null && anisotropy != null) {
             generateAreasAndIndicators();
@@ -573,7 +570,7 @@ public class Orientation_Indicators {
       lastMagnification = magnification;
    }
 
-   public boolean setScaling(float magnification) {
+   public boolean scaleInterval(float magnification) {
       if (scaleWithMag) {
          scaledCellSize = (int) (interval / magnification);
          scaledLength = (float) (scaledCellSize * indicatorLength);
@@ -593,7 +590,7 @@ public class Orientation_Indicators {
       if (cellSizeLabel != null) {
          this.cellSizeLabel.setText("[" + scaledCellSize + "x" + scaledCellSize + "]");
       }
-      System.out.println("Cell, length: " + scaledCellSize + ", " + scaledLength);
+      System.out.println("Scaled cellSize, length: " + scaledCellSize + ", " + scaledLength);
       if (scaledCellSize == lastCellSize && !rerun && scaleWithMag) {
          return false;
       }
@@ -602,6 +599,7 @@ public class Orientation_Indicators {
    }
 
    public void createfloatArrays(final ImagePlus imp1, int index, PolScope.Type psType) {
+      long start = System.nanoTime();
       ImageStack stack1 = this.imp1.getStack();
       // Convert pixel values to measurement values
       int length = width * height;
@@ -613,16 +611,24 @@ public class Orientation_Indicators {
       } else {
          intensity = null;
       }
+      long dur = (System.nanoTime() - start) / 1000000;
+      // System.out.println("createfloatArrays, msec: " + dur);
    }
 
    public void generateAreasAndIndicators() {
-      System.out.println("Generating...");
+      //System.out.println("Generating...");
+      long start = System.nanoTime();
       //System.out.println("scaledCellSizer = " + scaledCellSize);
       cellSizeLabel.setText("[" + scaledCellSize + "x" + scaledCellSize + "]");
       areas = generateAreas(imp1, anisotropy, orient, intensity, scaledCellSize, indicatorType);
+      long dur = (System.nanoTime() - start) / 1000000;
+      //System.out.println("generateAreas, msec: " + dur);
+      start = System.nanoTime();
       indicators = generateIndicators(imp1, areas,
               scaledCellSize, indicatorType, scaledLength, ratioLengthChoice);
       canvas.setIndicators(indicators);
+      dur = (System.nanoTime() - start) / 1000000;
+      //System.out.println("generateIndicators, msec: " + dur);
       //canvas.repaint();
    }
 
@@ -632,55 +638,60 @@ public class Orientation_Indicators {
 
    private Vector<AveragedArea> generateAreas(ImagePlus imp,
            float[] anisotropy, float[] orient, float[] intensity,
-           int cellSize, Type type) {
+           int cellSize, OrientationIndicators.Type type) {
+
       areas = new Vector<AveragedArea>();
       CircularStatistics stat = new CircularStatistics();
-      maxAnisotropy = 0;
-      int w = imp.getWidth();
-      int h = imp.getHeight();
+      //maxAnisotropy = 0;
 
-      int nX = w / cellSize;
-      int nY = h / cellSize;
-      //int nX = w / cellSize - 1;
-      //int nY = h / cellSize - 1;
+      Rectangle roi;
+      if (wholeImageCalc) {
+         roi = new Rectangle(0, 0, imp.getWidth(), imp.getHeight());
+      } else {
+         if (imp.getRoi() == null) { // use visible area
+            roi = imp.getCanvas().getSrcRect();
+           } else { // use roi area
+            roi = imp.getRoi().getBounds();
+//            imp.setRoi(roi);
+//            roi = imp.getRoi().getBounds();
+         }
+      }
 
-      //int nX = (int) Math.ceil((float) roiRect.width / interval + 0.5);
-      //int nY = (int) Math.ceil((float) roiRect.height / interval + 0.5);
-      //System.out.println("nX, nY: " + nX +", " + nY);
-      //      xIHalf = (int) Math.ceil((float) interval / 2);
-      //      yIHalf = (int) Math.ceil((float) interval / 2);
-      int numCells = nX * nY;
+      int nX = roi.width / cellSize;
+      int nY = roi.height / cellSize;
+
+      //
+      System.out.println("roi = " + roi);
+      System.out.println("CellSize, nX, nY = " + cellSize + ", " + nX + ", " + nY);
+
+      // int numCells = nX * nY;
       float[] orientCell = new float[cellSize * cellSize];
       float[] anisoptropyCell = new float[cellSize * cellSize];
       float[] intensityCell = new float[cellSize * cellSize];
-//      for (int i = 1; i < iMax; i++) {
-//         for (int j = 1; j < jMax; j++) {
-//            drawGlyphs(i, j, graphics);
-//         }
-//      }
-      // What if interval ==1 ???
-      
+
       // for each cell
-      for (int m = 0; m < nY; m++) {
-         for (int n = 0; n < nX; n++) {
-//            int x0 = roiRect.x + (n * cellSize);
-//            int y0 = roiRect.y + (m * cellSize);
-            int x0 = (n * cellSize);
-            int y0 = (m * cellSize);
+      for (int y = 0; y < nY; y++) {
+         for (int x = 0; x < nX; x++) {
+
+//            int x0 = (x * cellSize);
+//            int y0 = (y * cellSize);
 //            float centerX = x0 + cellSize / 2f;
 //            float centerY = y0 + cellSize / 2f;
             //System.out.println("  " + x0 + ", " + y0 + ", " +centerX + ", " +centerY );
             AveragedArea aa;
             if (cellSize > 1) {
+               int x0 = roi.x + (x * cellSize);
+               int y0 = roi.y + (y * cellSize);
                float centerX = x0 + cellSize / 2f;
                float centerY = y0 + cellSize / 2f;
                // within each cell, calculate averages...
                int count = 0;
                for (int i = 0; i < cellSize; i++) {
                   for (int j = 0; j < cellSize; j++) {
-                     int offset = (y0 + j) * w + (x0 + i);
+                     int offset = ((y0 + i) * roi.width) + (x0 + j);
                      //int offset = j * w + i;
                      if (offset >= orient.length) {
+                        System.err.println("offset >= orient.length");
                         break;
                      }
                      orientCell[count] = (float) orient[offset];
@@ -698,146 +709,151 @@ public class Orientation_Indicators {
                //AveragedArea(x, y,  intensity, anisotropy, orientation)
                aa = new AveragedArea(centerX, centerY,
                        cellAverages[2], cellAverages[0], cellAverages[1]);
-               if (maxAnisotropy < cellAverages[0]) {
-                  maxAnisotropy = cellAverages[0];
-               }
-            } else {
-               int offset = m * w + n;
+//               if (maxAnisotropy < cellAverages[0]) {
+//                  maxAnisotropy = cellAverages[0];
+//               }
+            } else { // cellsize 1x1, no averaging
+               int offset = (roi.y+y) * roi.width + roi.x+x;
                float i;
                if (intensity == null) {
                   i = 1.0f;
                } else {
                   i = (float) intensity[offset];
                }
-               aa = new AveragedArea(x0, y0, i,
+               aa = new AveragedArea(roi.x+x, roi.y+y, i,
                        (float) anisotropy[offset], (float) orient[offset]);
-               if((float) anisotropy[offset]> maxAnisotropy) {
-                  maxAnisotropy = anisotropy[offset];
-               }
+//               if ((float) anisotropy[offset] > maxAnisotropy) {
+//                  maxAnisotropy = anisotropy[offset];
+//               }
             }
             areas.add(aa);
          }
       }
-      //System.out.println("maxVariance = " + maxVariance);
+      //System.out.println("maxAnisotropy = " + maxAnisotropy);
       return areas;
    }
 
-//   private Vector<AveragedArea> generateAreasFromRois(ImagePlus imp,
-//           float[] anisotropy, float[] orient, float[] intensity,
-//           int cellSize, Type type) {
-//      areas = new Vector<AveragedArea>();
-//      CircularStatistics stat = new CircularStatistics();
-//
-//      int w = imp.getWidth();
-//      int h = imp.getHeight();
-//
-//      int nX = w / cellSize;
-//      int nY = h / cellSize;
-//      //int nX = w / cellSize - 1;
-//      //int nY = h / cellSize - 1;
-//
-//      //int nX = (int) Math.ceil((float) roiRect.width / interval + 0.5);
-//      //int nY = (int) Math.ceil((float) roiRect.height / interval + 0.5);
-//      //System.out.println("nX, nY: " + nX +", " + nY);
-//      //      xIHalf = (int) Math.ceil((float) interval / 2);
-//      //      yIHalf = (int) Math.ceil((float) interval / 2);
-//      int numCells = nX * nY;
-//      float[] orientCell = new float[cellSize * cellSize];
-//      float[] anisoptropyCell = new float[cellSize * cellSize];
-//      float[] intensityCell = new float[cellSize * cellSize];
-////      for (int i = 1; i < iMax; i++) {
-////         for (int j = 1; j < jMax; j++) {
-////            drawGlyphs(i, j, graphics);
-////         }
-////      }
-//      // What if interval ==1 ???
-//
-//      // for each cell
-//      float maxVariance = 0;
-//      for (int m = 0; m < nY; m++) {
-//         for (int n = 0; n < nX; n++) {
-////            int x0 = roiRect.x + (n * cellSize);
-////            int y0 = roiRect.y + (m * cellSize);
-//            int x0 = (n * cellSize);
-//            int y0 = (m * cellSize);
-////            float centerX = x0 + cellSize / 2f;
-////            float centerY = y0 + cellSize / 2f;
-//            //System.out.println("  " + x0 + ", " + y0 + ", " +centerX + ", " +centerY );
-//            AveragedArea aa;
-//            if (cellSize > 1) {
-//               float centerX = x0 + cellSize / 2f;
-//               float centerY = y0 + cellSize / 2f;
-//               // within each cell, calculate averages...
-//               int count = 0;
-//               for (int i = 0; i < cellSize; i++) {
-//                  for (int j = 0; j < cellSize; j++) {
-//                     int offset = (y0 + j) * w + (x0 + i);
-//                     //int offset = j * w + i;
-//                     if (offset >= orient.length) {
-//                        break;
-//                     }
-//                     orientCell[count] = (float) orient[offset];
-//                     anisoptropyCell[count] = (float) anisotropy[offset];
-//                     if (intensity == null) {
-//                        intensityCell[count] = 1.0f;
-//                     } else {
-//                        intensityCell[count] = (float) intensity[offset];
-//                     }
-//                     count++;
-//                  }
-//               }
-//               float[] cellAverages = stat.process(orientCell, anisoptropyCell, intensityCell);
-//               //process returns: [meanR, meanTheta, std, intensity] ??? which std
-//               //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
-//               aa = new AveragedArea(centerX, centerY,
-//                       cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
-//               if (maxVariance < cellAverages[2]) {
-//                  maxVariance = cellAverages[2];
-//               }
-//            } else {
-//               int offset = m * w + n;
-//               float i;
-//               if (intensity == null) {
-//                  i = 1.0f;
-//               } else {
-//                  i = (float) intensity[offset];
-//               }
-//               aa = new AveragedArea(x0, y0, i,
-//                       (float) anisotropy[offset], (float) orient[offset], 0);
-//               
-//            }
-//            areas.add(aa);
-//         }
-//      }
-//      System.out.println("maxVariance = " + maxVariance);
-//      return areas;
-//   }
+   /*
+    //   private Vector<AveragedArea> generateAreasFromRois(ImagePlus imp,
+    //           float[] anisotropy, float[] orient, float[] intensity,
+    //           int cellSize, Type type) {
+    //      areas = new Vector<AveragedArea>();
+    //      CircularStatistics stat = new CircularStatistics();
+    //
+    //      int w = imp.getWidth();
+    //      int h = imp.getHeight();
+    //
+    //      int nX = w / cellSize;
+    //      int nY = h / cellSize;
+    //      //int nX = w / cellSize - 1;
+    //      //int nY = h / cellSize - 1;
+    //
+    //      //int nX = (int) Math.ceil((float) roiRect.width / interval + 0.5);
+    //      //int nY = (int) Math.ceil((float) roiRect.height / interval + 0.5);
+    //      //System.out.println("nX, nY: " + nX +", " + nY);
+    //      //      xIHalf = (int) Math.ceil((float) interval / 2);
+    //      //      yIHalf = (int) Math.ceil((float) interval / 2);
+    //      int numCells = nX * nY;
+    //      float[] orientCell = new float[cellSize * cellSize];
+    //      float[] anisoptropyCell = new float[cellSize * cellSize];
+    //      float[] intensityCell = new float[cellSize * cellSize];
+    ////      for (int i = 1; i < iMax; i++) {
+    ////         for (int j = 1; j < jMax; j++) {
+    ////            drawGlyphs(i, j, graphics);
+    ////         }
+    ////      }
+    //      // What if interval ==1 ???
+    //
+    //      // for each cell
+    //      float maxVariance = 0;
+    //      for (int m = 0; m < nY; m++) {
+    //         for (int n = 0; n < nX; n++) {
+    ////            int x0 = roiRect.x + (n * cellSize);
+    ////            int y0 = roiRect.y + (m * cellSize);
+    //            int x0 = (n * cellSize);
+    //            int y0 = (m * cellSize);
+    ////            float centerX = x0 + cellSize / 2f;
+    ////            float centerY = y0 + cellSize / 2f;
+    //            //System.out.println("  " + x0 + ", " + y0 + ", " +centerX + ", " +centerY );
+    //            AveragedArea aa;
+    //            if (cellSize > 1) {
+    //               float centerX = x0 + cellSize / 2f;
+    //               float centerY = y0 + cellSize / 2f;
+    //               // within each cell, calculate averages...
+    //               int count = 0;
+    //               for (int i = 0; i < cellSize; i++) {
+    //                  for (int j = 0; j < cellSize; j++) {
+    //                     int offset = (y0 + j) * w + (x0 + i);
+    //                     //int offset = j * w + i;
+    //                     if (offset >= orient.length) {
+    //                        break;
+    //                     }
+    //                     orientCell[count] = (float) orient[offset];
+    //                     anisoptropyCell[count] = (float) anisotropy[offset];
+    //                     if (intensity == null) {
+    //                        intensityCell[count] = 1.0f;
+    //                     } else {
+    //                        intensityCell[count] = (float) intensity[offset];
+    //                     }
+    //                     count++;
+    //                  }
+    //               }
+    //               float[] cellAverages = stat.process(orientCell, anisoptropyCell, intensityCell);
+    //               //process returns: [meanR, meanTheta, std, intensity] ??? which std
+    //               //AveragedArea(x, y,  intensity, anisotropy, orientation, orientationStd)
+    //               aa = new AveragedArea(centerX, centerY,
+    //                       cellAverages[3], cellAverages[0], cellAverages[1], cellAverages[2]);
+    //               if (maxVariance < cellAverages[2]) {
+    //                  maxVariance = cellAverages[2];
+    //               }
+    //            } else {
+    //               int offset = m * w + n;
+    //               float i;
+    //               if (intensity == null) {
+    //                  i = 1.0f;
+    //               } else {
+    //                  i = (float) intensity[offset];
+    //               }
+    //               aa = new AveragedArea(x0, y0, i,
+    //                       (float) anisotropy[offset], (float) orient[offset], 0);
+    //               
+    //            }
+    //            areas.add(aa);
+    //         }
+    //      }
+    //      System.out.println("maxVariance = " + maxVariance);
+    //      return areas;
+    //   }
+    */
    private Vector<Indicator> generateIndicators(ImagePlus imp,
            Vector<AveragedArea> areas,
-           int cellSize, Type type, float length, boolean lengthProportionalToAnisotropy) {
+           int cellSize, OrientationIndicators.Type type, float length,
+           boolean lengthProportionalToAnisotropy) {
 
       Vector<Indicator> _indicators = new Vector<Indicator>();
       OrientationIndicators og = new OrientationIndicators();
       for (AveragedArea aa : areas) {
-         if (aa.anisotropy >= thresholdMin && aa.anisotropy <= thresholdMax) {
+         if (aa.anisotropy >= thresholdMin && aa.anisotropy <= thresholdMax) { // only show if withing threshold
             float adjustedLength;
             if (lengthProportionalToAnisotropy) {
-//               if (multiplyForLength) {
-//                  adjustedLength = (float)Math.pow(aa.anisotropy, lengthGamma) * aa.intensity * (float) length;
-//               } else {
-               adjustedLength = aa.anisotropy/maxAnisotropy * (float) length;
-               //adjustedLength = (float) Math.pow(aa.anisotropy, lengthGamma) * (float) length;
-//               }
+               if (multiplyForLength) {
+                  // TODO
+                  adjustedLength = aa.anisotropy * aa.intensity * (float) length;
+               } else {
+                  adjustedLength = aa.anisotropy * (float) length;
+                  //adjustedLength = (float) Math.pow(aa.anisotropy, lengthGamma) * (float) length;
+               }
             } else {
                adjustedLength = (float) length;
             }
+            // center point
             float x = aa.x;
             float y = aa.y;
             if (cellSize == 1) {
                x = x + 0.5f;
                y = y + 0.5f;
             }
-            //
+            // color and opacity
             Color adjustedColor;
             if (varyOpacity && cellSize > 1) {
                float thisOpacity = opacity * (1 - aa.anisotropy);
@@ -848,42 +864,41 @@ public class Orientation_Indicators {
             } else {
                adjustedColor = color;
             }
-            float variance = (float) Math.pow(1 - aa.anisotropy, lengthGamma);
+            //
+            float variance = 0;
             // stroke, if indicator
             if (type == Type.LINE) {
                _indicators.add(new Indicator(og.createLineAt(x, y,
-                       aa.orientation, adjustedLength, variance),
-                       adjustedColor, null));
+                       aa.orientation, adjustedLength, variance), adjustedColor, null));
             }
             if (type == Type.ELLIPSE) {
                if (cellSize > 1) {
+                  variance = (float) Math.pow(1 - aa.anisotropy, lengthGamma);
                   _indicators.add(new Indicator(og.createEllipseAt(x, y,
-                          aa.orientation, adjustedLength, variance),
-                          adjustedColor, null));
+                          aa.orientation, adjustedLength, variance), adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
-                          aa.orientation, adjustedLength, variance),
-                          color, null));
+                          aa.orientation, adjustedLength, variance), color, null));
                }
             }
             if (type == Type.FAN) {
                if (cellSize > 1) {
+                  variance = (float) Math.pow(1 - aa.anisotropy, lengthGamma);
                   _indicators.add(new Indicator(og.createFanAt(x, y,
-                          aa.orientation, adjustedLength, variance),
-                          adjustedColor, null));
+                          aa.orientation, adjustedLength, variance), adjustedColor, null));
                } else {
                   _indicators.add(new Indicator(og.createLineAt(x, y,
-                          aa.orientation, adjustedLength, variance),
-                          color, null));
+                          aa.orientation, adjustedLength, variance), color, null));
                }
             }
          }
-//         if (aa.orientation == 0 && aa.orientation == 90) {
-//            System.out.println("anis: " + aa.anisotropy + " :  " + aa.orientation + " - [" + aa.x
-//                    + "," + aa.y + "]");
-//         }
       }
       return _indicators;
+   }
+
+   public static double pow(double a, double b) {
+      final long tmp = (long) (9076650 * (a - 1) / (a + 1 + 4 * (Math.sqrt(a))) * b + 1072632447);
+      return Double.longBitsToDouble(tmp << 32);
    }
 
    // ==========================
@@ -996,6 +1011,7 @@ public class Orientation_Indicators {
       return p;
    }
 
+   // Measure Multiple ROIs... 
    private void measureRois() {
       OrientationAnalyzer oa = new OrientationAnalyzer(imp1);
       oa.measureFromRois();
@@ -1009,7 +1025,9 @@ public class Orientation_Indicators {
 //              + dropshadow + "\n" + centerMarkers + "\n");
    }
 
-   // Called by IndicatorCanvas on mouse movement
+   /**
+    * Called by IndicatorCanvas on mouse movement
+    */
    void cursorMoved(int ox, int oy) {
       // get the aniso & orient values at this pixel
       int offset = oy * width + ox;
@@ -1130,7 +1148,7 @@ public class Orientation_Indicators {
          int channels = 1; // (imp1).getC();
          int index = imp1.getStackIndex(channels, slices, frames) - 1;
          if (lastIndex != index || rerun) {
-            System.out.println("index: " + index);
+            //System.out.println("index: " + index);
             //imp1 = IJ.getImage();
             updateIndicators(imp1, index);
 
@@ -1147,7 +1165,7 @@ public class Orientation_Indicators {
          int channels = 1; // (imp1).getC();
          int index = imp1.getStackIndex(channels, slices, frames) - 1;
          if (lastIndex != index || rerun) {
-            System.out.println("TP: " + index);
+            //System.out.println("TP: " + index);
             //imp1 = IJ.getImage();
             updateIndicators(imp1, index);
 
@@ -1174,6 +1192,7 @@ public class Orientation_Indicators {
               + ", color=" + color + '}';
    }
 }
+
 /**
  * Change history
  *
